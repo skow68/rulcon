@@ -1,0 +1,2 @@
+Exceptions
+Zbudowana jest dodatkowa warstwa Exceptions. Są to custom Exceptions. W obiektach i funkcjach używany jest try i w przypadku błędu uruchamiany jest rise naszego custom Exception. Obsługa custom Exception jest umiejscowiona tylko w kodzie głównym i tutaj generowane są komunikaty dla użytkownika. Natomiast logi o błędach generowane są w obiektach i funkcjach.
