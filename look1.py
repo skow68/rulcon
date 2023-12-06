@@ -22,3 +22,4 @@ for group in groups:
         bingo = group.uid
         break
 print(bingo)
+#test git 1
