@@ -1,0 +1,19 @@
+# Core routers
+core:
+  core-r1:
+    type: CiscoNxosSSH
+  core-r2:
+    type: CiscoNxosSSH
+# Firewall data
+firewalls:
+  fw1:
+    type: Palo
+    name: fw1-0001
+    zone: VR-1
+  fw2:
+    type: Palo
+    name: fw2-0002
+    zone: VR-2
+routes:
+  '192.168.245.138': fw1
+  '192.168.245.139': fw2

@@ -9,6 +9,12 @@ from panos.errors import PanCommitNotNeeded, PanDeviceError, PanObjectMissing, P
 from panos.firewall import Firewall
 from panos.policies import Rulebase, SecurityRule
 from panos.objects import AddressObject, AddressGroup
+import yaml
+with open('config.yml') as confile:
+    try:
+        config = yaml.safe_load(confile)
+    except yaml.YAMLError as exc:
+        print(exc)
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
 route_core = {
@@ -39,16 +45,16 @@ sec_max_ao = 2
 
 
 # W odróżnieniu od urządzeń brzegowych zakładamy, że jest tylko jeden typ urządzeń core
-class Nxos():
+class Coredev():
     """Kanał komunikacyjny do routerów corowych
     """
     def __init__(self, user, password):
-        self.core = ["core-p01", "core-p02", "core-a01", "core-a01"]
+        #self.core = ["core-p01", "core-p02", "core-a01", "core-a01"]
         self.rcoredata = {
-            "device_type": "cisco_nxos_ssh",
+            #"device_type": "cisco_Nxos_ssh",
             "username": user,
             "password": password,
-            "session_log": "net-cisco.log",
+            "session_log": "net-core.log",
         }
         self.msg = {
             'NetmikoAuthenticationException': 'Authentication error',
@@ -66,8 +72,9 @@ class Nxos():
         self.error = ''
         command = f'show ip route {ip}'
         m = []
-        for r in self.core:
+        for r in config['core']:
             self.rcoredata['host'] = r
+            self.rcoredata['device_type'] = config['core'][r]['type']
             if not isinstance(self.r, CiscoNxosSSH):
                 # print("Creating new netmiko object")
                 try:
@@ -197,7 +204,7 @@ class Connections():
         """
         # table zawiera porty, interesują nas tutaj tylko adresy ip, więc porty odrzucamy
         ipset = [a[slice(0, 2)] for a in table]
-        router = Nxos(user, password)
+        router = Coredev(user, password)
         self.rules_fullinfo = []
         self.connections_to_fw = []
         for p in ipset:
