@@ -49,9 +49,10 @@ class Coredev():
     """Kanał komunikacyjny do routerów corowych
     """
     def __init__(self, user, password):
-        #self.core = ["core-p01", "core-p02", "core-a01", "core-a01"]
-        self.rcoredata = {
+        self.core = config['core']
+        self.coredev = {
             #"device_type": "cisco_Nxos_ssh",
+            "device_type": "autodetect",
             "username": user,
             "password": password,
             "session_log": "net-core.log",
@@ -72,13 +73,21 @@ class Coredev():
         self.error = ''
         command = f'show ip route {ip}'
         m = []
-        for r in config['core']:
-            self.rcoredata['host'] = r
-            self.rcoredata['device_type'] = config['core'][r]['type']
-            if not isinstance(self.r, CiscoNxosSSH):
+        for r in self.core:
+            self.coredev['host'] = r
+            #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
+            #If 'self.r' is a string type, it indicates that the device does not have an established session.
+            #If it is an object type, then 'self.r' signifies that a session has been established.
+            if isinstance(self.r, str):
                 # print("Creating new netmiko object")
                 try:
-                    self.r = ConnectHandler(**self.rcoredata)
+                    guesser = SSHDetect(**coredev)
+                    best_match = guesser.autodetect()
+                    print(best_match)
+                    print(guesser.potential_matches)
+                    # Update the 'device' dictionary with the device_type
+                    self.coredev["device_type"] = best_match
+                    self.r = ConnectHandler(**self.coredev)
                     # print(r.__dict__)
                     # r.disconnect()
                 except Exception as err:

@@ -1,8 +1,8 @@
 # Core routers
 #cisco_nxos_ssh - nazwa modułu, CiscoNxosSSH - nazwa obiektu w module
 core:
-  core-r1:
-  core-r2:
+- core-r1
+- core-r2
 # Firewall data
 firewalls:
   fw1:
