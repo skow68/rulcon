@@ -61,8 +61,8 @@ class Coredev():
             'NetmikoTimeoutException': 'Timeout error',
         }
         self.error = ''
-        for i in self.core:
-            self.r = i
+        for i in config['core']:
+            self.core = i
 
     def find_edge(self, ip):
         """Na podstawie routing wyznacza firewall'e, na których należy wykonać konfigurację
