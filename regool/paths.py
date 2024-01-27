@@ -43,8 +43,6 @@ devinfo = {
 }
 sec_max_ao = 2
 
-
-# W odróżnieniu od urządzeń brzegowych zakładamy, że jest tylko jeden typ urządzeń core
 class Coredev():
     """Kanał komunikacyjny do routerów corowych
     """
@@ -72,6 +70,7 @@ class Coredev():
         """
         self.error = ''
         command = f'show ip route {ip}'
+        core_routes = config['core_routes']
         m = []
         for r in self.core:
             self.coredev['host'] = r
@@ -102,8 +101,8 @@ class Coredev():
                 return 'inside'  # adres jest wewnetrzny
             pattern = re.compile("\*via ((?:\d+\.){3}\d+)")
             m = pattern.findall(output)
-            if m[0] in route_core.keys():
-                return route_core[m[0]]
+            if m[0] in core_routes.keys():
+                return core_routes[m[0]]
             else:
                 self.error = "Błąd podczas wyznaczania ścieżki. Nie wprowadzono żadnych zmian."
                 print(f'Error: Not defined {m[0]} edge in route_core (looking for {ip})')
@@ -168,7 +167,7 @@ class Palo(Edge):
         :returns: Nazwa obiktu grupy adresów
         """
         fw = self.conn
-        agname = 'ag-' + name
+        agname = config['convention']['addr-group-pref'] + name
         AddressObject.refreshall(fw, add=True)
         if len(a_list) > sec_max_ao:
             raise regool.rgerrors.ToManyElementsError(f'Ilość adresów do dodania przekracza ustalony próg {sec_max_ao}')
@@ -203,7 +202,7 @@ class Connections():
     def __init__(self, table, user, password):
         """Wyznacza ścieżkę dla reguły, czyli device and zone.
         Funkcja wyznacza listę firewalli do konfiguracji i uzupełnia tabelę reguł o zony. I to w jednej pętli.
-        To jest za dużo jak na init. Ale ta klasa jest przerubką z istniejącej wcześniej funkcji, która została
+        To jest za dużo jak na init. Ale ta klasa jest przeróbką z istniejącej wcześniej funkcji, która została
         dobrze przetestowana. Nie warto więc przerabiać.
         :param user, password: Credentials for login (tacacs)
         :param table: Lista list (tabela). Surowe dane z wniosku.

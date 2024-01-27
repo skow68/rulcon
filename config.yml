@@ -13,6 +13,9 @@ firewalls:
     type: Palo
     name: fw2-0002
     zone: VR-2
-routes:
+core_routes:
   '192.168.245.138': fw1
   '192.168.245.139': fw2
+convention:
+  addr-group-pref: ag-
+  sec-rule-pref: rule-
