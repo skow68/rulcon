@@ -3,7 +3,7 @@
 import re
 import warnings
 import regool.rgerrors
-from netmiko import ConnectHandler
+from netmiko import SSHDetect, ConnectHandler
 from netmiko.cisco import CiscoNxosSSH  # tylko dla funkcji isinstance
 from panos.errors import PanCommitNotNeeded, PanDeviceError, PanObjectMissing, PanURLError, PanApiKeyNotSet
 from panos.firewall import Firewall
@@ -17,24 +17,6 @@ with open('config.yml') as confile:
         print(exc)
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
-route_core = {
-    '192.168.245.138': 'fwi',
-    '192.168.245.142': 'fwi',
-    '192.168.245.166': 'fwe',
-    '192.168.245.170': 'fwe',
-    '192.168.246.138': 'fwi',
-    '192.168.246.142': 'fwi',
-    '192.168.246.166': 'fwe',
-    '192.168.246.170': 'fwe',
-    '192.168.245.146': 'fwc',
-    '192.168.246.146': 'fwc',
-    '192.168.245.150': 'fwc',
-    '192.168.246.150': 'fwc',
-    '192.168.245.114': 'swift',
-    '192.168.246.114': 'swift',
-    '192.168.245.118': 'swift',
-    '192.168.246.118': 'swift'
-}
 devinfo = {
     'fwi': ['Palo', 'fwi-b01', 'VR-I'],
     'fwe': ['Palo', 'fwi-b01', 'VR-E'],
@@ -82,7 +64,7 @@ class Coredev():
             if isinstance(self.r, str):
                 # print("Creating new netmiko object")
                 try:
-                    guesser = SSHDetect(**coredev)
+                    guesser = SSHDetect(**self.coredev)
                     best_match = guesser.autodetect()
                     print(best_match)
                     print(guesser.potential_matches)
@@ -97,19 +79,11 @@ class Coredev():
                     print("Error: ", self.msg[exception_type])
                     continue
             output = self.r.send_command(command)
-            """ pattern = re.compile("eigrp")  # zakładamy, że outside jest widziany tylko po bgp i staticu (sprawdzić SIA)
-            m = pattern.findall(output)
-            if len(m) > 0:
-                return 'inside'  # adres jest wewnetrzny """
             pattern = re.compile("\*via ((?:\d+\.){3}\d+)")
             m = pattern.findall(output)
             #Simply having a routing path to the target IP is not enough. It must point at a firewall.
             if m[0] in core_routes.keys():
                 return core_routes[m[0]]
-            """ else:
-                self.error = "Błąd podczas wyznaczania ścieżki. Nie wprowadzono żadnych zmian."
-                print(f'Error: Not defined {m[0]} edge in route_core (looking for {ip})')
-                return 0 """
         #If not empty "m" exists, it means that at least one core device was accessible. It's sufficient for condition to conclude
         #that required routing was not found. It means that the IP address we are searching for must be an inside IP.
         if not m:
