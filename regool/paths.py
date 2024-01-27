@@ -72,6 +72,8 @@ class Coredev():
         command = f'show ip route {ip}'
         core_routes = config['core_routes']
         m = []
+        #We assume that needed routing is not necessairly available in all core devices. It may omly exists in one.
+        #So, we need loop over listed devices until the proper routing is found.
         for r in self.core:
             self.coredev['host'] = r
             #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
@@ -95,22 +97,27 @@ class Coredev():
                     print("Error: ", self.msg[exception_type])
                     continue
             output = self.r.send_command(command)
-            pattern = re.compile("eigrp")  # zakładamy, że outside jest widziany tylko po bgp i staticu (sprawdzić SIA)
+            """ pattern = re.compile("eigrp")  # zakładamy, że outside jest widziany tylko po bgp i staticu (sprawdzić SIA)
             m = pattern.findall(output)
             if len(m) > 0:
-                return 'inside'  # adres jest wewnetrzny
+                return 'inside'  # adres jest wewnetrzny """
             pattern = re.compile("\*via ((?:\d+\.){3}\d+)")
             m = pattern.findall(output)
+            #Simply having a routing path to the target IP is not enough. It must point at a firewall.
             if m[0] in core_routes.keys():
                 return core_routes[m[0]]
-            else:
+            """ else:
                 self.error = "Błąd podczas wyznaczania ścieżki. Nie wprowadzono żadnych zmian."
                 print(f'Error: Not defined {m[0]} edge in route_core (looking for {ip})')
-                return 0
+                return 0 """
+        #If not empty "m" exists, it means that at least one core device was accessible. It's sufficient for condition to conclude
+        #that required routing was not found. It means that the IP address we are searching for must be an inside IP.
         if not m:
-            self.error = "Błąd połaczenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
+            self.error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
             print('Error: Connection to all core routers failed')
             return 0
+        #
+        return 'inside'
 
 
 # Zakladamy, że może być wiele typów urządzeń brzegowych (na razie tylko Palo). Wprowadzamy nadklasę Edge, aby
