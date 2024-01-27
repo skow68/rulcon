@@ -50,16 +50,16 @@ with open('connections.pkl', 'rb') as inp:
 readytable = regool.rulcon.rule_factory(connections.rules_fullinfo)
 # print(readytable)
 reqid = "535353"
-for conn in connections.connections_to_fw:
-    print("EDEV:", conn.edev)
-    for rule in readytable[conn.edev]:
+for connection in connections.connections_to_fw: #lista obiektów Palo
+    print("EDEV:", connection.edev)
+    for rule in readytable[connection.edev]:
         print("rule:", rule)
         if len(rule[2]) > max_og:
-            rule[2] = conn.compress2ag(rule[2], reqid)
+            rule[2] = connection.compress2ag(rule[2], reqid)
         if len(rule[3]) > max_og:
-            rule[3] = conn.compress2ag(rule[3], reqid)
+            rule[3] = connection.compress2ag(rule[3], reqid)
         if len(rule[4]) > max_port:
-            rule[4] = conn.compress2sg(rule[4], reqid)
+            rule[4] = connection.compress2sg(rule[4], reqid)
         if len(rule[5]) > max_port:
-            rule[5] = conn.compress2sg(rule[5], reqid)
+            rule[5] = connection.compress2sg(rule[5], reqid)
 

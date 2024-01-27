@@ -16,6 +16,8 @@ firewalls:
 core_routes:
   '192.168.245.138': fw1
   '192.168.245.139': fw2
+#naming convention - prefixes to objects created by the app should be uniq and complex to make sure that the objects
+#are not created by other app or human by accident. 
 convention:
   addr-group-pref: ag-
   sec-rule-pref: rule-

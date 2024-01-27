@@ -106,7 +106,10 @@ class Edge:
 
 
 class Palo(Edge):
-    """Komuikacja dla FW typu Palo Alto."""
+    """Komuikacja dla FW typu Palo Alto.
+    Instancja obiektu pozwala na komunikację z urządzeniem dzięki "conn". To nie są połączenia w sensie sesji tcp, bo
+    mamy tu do czynienia z API po http. Są to sesje w sensie uwierzytelnienia. 
+    """
     def __init__(self, edev, user, password):
         """
         :param edev: fwi, fwe, itp. - urządzenie brzegowe (jego symbol z tabeli route_core)
@@ -144,7 +147,7 @@ class Palo(Edge):
     def compress2ag(self, a_list, name):
         """Tworzy obiekt grupujący adresy ip (ag - address group)
         :param a_list: Lista z adresami IP
-        :param name: Base Name, na podstawie której budowane są inne nazwy
+        :param name: Base Name, na podstawie której budowane są inne nazwy np. ID wniosku
         :returns: Nazwa obiktu grupy adresów
         """
         fw = self.conn
@@ -176,9 +179,10 @@ class Palo(Edge):
 
 
 class Connections():
-    """Obiekt ogarniający wszystkie funkcje związane z dostępem do urządzeń sieciowych.
-    self.connections_to_fw - lista połączeń do FW.
-    self.rules_fullinfo - komplet informacji do konfiguracji reguł.
+    """Obiekt do utrzymywania połączeń do firewall'i zaangażowanych do konfiguracji reguł dla konkretnej pary IP.
+    Całą robotę wykonuje init tworząc:
+    self.connections_to_fw - lista zestawionych połączeń do FW.
+    self.rules_fullinfo - komplet informacji do konfiguracji reguł tzn. z zonami i na jakim firewallu 
     """
     def __init__(self, table, user, password):
         """Wyznacza ścieżkę dla reguły, czyli device and zone.
@@ -199,7 +203,7 @@ class Connections():
         for p in ipset:
             edge_dev = []
             for i in range(0, 2):
-                # wyznaczanie firewall'i do konfiguracji dla pary src dst (z routerów corowych)
+                # Wyznaczanie firewall'i do konfiguracji dla pary src dst (z routerów corowych)
                 ip = p[i]
                 ip_to_find = ip.split('/')[0]
                 found = router.find_edge(ip_to_find)
@@ -212,7 +216,8 @@ class Connections():
             # Jeśli dostęp musi być konfigurowany na dwóch fw, to edge_dev będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
             for edev in edge_dev:
-                # mając firewale z pętli wyżej, zestawiamy połaczenia do nich, wyznaczamy zony dla każdej pary ip
+                # Mając firewale z pętli wyżej(jeden lub dwa), zestawiamy połaczenia do nich, wyznaczamy zony dla każdej pary ip.
+                # Na każdym z tych firewalli dodajemy prawie taką samą regułę. Różnić się będą tylko nazwami zon.
                 fw_row_ininfo = []
                 for i in range(0, 2):
                     ip = p[i]
