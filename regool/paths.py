@@ -198,25 +198,29 @@ class Connections():
                     [[dev, src_ip, src_zone, dst_ip, dst_zone, port], ...]
         """
         # table zawiera porty, interesują nas tutaj tylko adresy ip, więc porty odrzucamy
-        ipset = [a[slice(0, 2)] for a in table]
-        router = Coredev(user, password)
+        self.ipset = [a[slice(0, 2)] for a in table]
+        self.route_source = Coredev(user, password)
         self.rules_fullinfo = []
         self.connections_to_fw = []
-        for p in ipset:
+    def selected_firewalls(self):
+        """ returns: list of firewall names"""
+        for p in self.ipset:
             edge_dev = []
             for i in range(0, 2):
                 # Wyznaczanie firewall'i do konfiguracji dla pary src dst (z routerów corowych)
                 ip = p[i]
                 ip_to_find = ip.split('/')[0]
-                found = router.find_edge(ip_to_find)
+                found = self.route_source.find_edge(ip_to_find)
                 if not found:
-                    print(router.error)
-                    raise regool.rgerrors.ChannelError(router.error)
+                    print(self.route_source.error)
+                    raise regool.rgerrors.ChannelError(self.route_source.error)
                 if found != "inside":
                     # jeśli inside, to tylko jeden fw do konfiguracji
                     edge_dev.append(found)
+        return edge_dev
             # Jeśli dostęp musi być konfigurowany na dwóch fw, to edge_dev będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
+    def rules_fullinfo(self):
             for edev in edge_dev:
                 # Mając firewale z pętli wyżej(jeden lub dwa), zestawiamy połaczenia do nich, wyznaczamy zony dla każdej pary ip.
                 # Na każdym z tych firewalli dodajemy prawie taką samą regułę. Różnić się będą tylko nazwami zon.
