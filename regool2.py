@@ -41,10 +41,10 @@ for row in worksheet.iter_rows(values_only=True, min_row=3):
     basetable.append([src, dst, port])
 # rules_fullinfo ma format listy list: [['pfe', '172.18.15.129', 'DMZE-OUTSIDE', '192.168.170.71', 'DMZE-INSIDE', 80]]
 # Podczas testów zamiast ściągać dane z urządzeń pobieramy je z obiektu wcześniej zachowanego w pliku.
-with open('connections.pkl', 'rb') as inp:
-    connections = pickle.load(inp)
+#with open('connections.pkl', 'rb') as inp:
+#    connections = pickle.load(inp)
 # nie przechwytujemy wyjątków z Connections, bo i tak powinny zakończyć działanie programu
-# connections = regool.paths.Connections(basetable, user, password)
+connections = regool.paths.Connections(basetable, user, password)
 # Dzięki poniższej funkcji nie musimy za każdym testem wykonywać połączeń do urządzeń.
 # save_object(connections, 'connections.pkl')
 readytable = regool.rulcon.rule_factory(connections.rules_fullinfo)

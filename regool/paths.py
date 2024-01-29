@@ -41,6 +41,7 @@ class Coredev():
             'NetmikoAuthenticationException': 'Authentication error',
             'NetmikoTimeoutException': 'Timeout error',
         }
+        #Po co to?:
         self.error = ''
         for i in config['core']:
             self.core = i
@@ -180,6 +181,7 @@ class Palo(Edge):
 
 class Connections():
     """Obiekt do utrzymywania połączeń do firewall'i zaangażowanych do konfiguracji reguł dla konkretnej pary IP.
+    Na wejście dostajemy tabelę składającą się z wszystkich wierszy jednego wniosku. Czyli ten obiekt jest wniosko-centryczny
     Całą robotę wykonuje init tworząc:
     self.connections_to_fw - lista zestawionych połączeń do FW.
     self.rules_fullinfo - komplet informacji do konfiguracji reguł tzn. z zonami i na jakim firewallu 
