@@ -15,23 +15,26 @@ with open('config.yml') as confile:
         config = yaml.safe_load(confile)
     except yaml.YAMLError as exc:
         print(exc)
+firewalls = config['firewalls']
+route_source = config['route_source']
+routes_to_outside = config['routes_to_outside']
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
-devinfo = {
-    'fwi': ['Palo', 'fwi-b01', 'VR-I'],
-    'fwe': ['Palo', 'fwi-b01', 'VR-E'],
-    'fwc': ['Palo', 'fwc-b01', 'VR-VSYS1-VRF'],
-    'swift': ['Palo', 'fwc-b01', 'VR-VSYS2-SWIFT']
-}
+# devinfo = {
+#     'fwi': ['Palo', 'fwi-b01', 'VR-I'],
+#     'fwe': ['Palo', 'fwi-b01', 'VR-E'],
+#     'fwc': ['Palo', 'fwc-b01', 'VR-VSYS1-VRF'],
+#     'swift': ['Palo', 'fwc-b01', 'VR-VSYS2-SWIFT']
+# }
 sec_max_ao = 2
-
-class Coredev():
-    """Kanał komunikacyjny do routerów corowych
+#route_src_conns = []
+class Cisco():
+    """Connection to Cisco devices
     """
-    def __init__(self, user, password):
-        self.core = config['core']
-        self.coredev = {
+    def __init__(self, host):
+        coredev = {
             #"device_type": "cisco_Nxos_ssh",
+            'host': host,
             "device_type": "autodetect",
             "username": user,
             "password": password,
@@ -41,60 +44,66 @@ class Coredev():
             'NetmikoAuthenticationException': 'Authentication error',
             'NetmikoTimeoutException': 'Timeout error',
         }
-        #Po co to?:
-        self.error = ''
-        for i in config['core']:
-            self.core = i
+        try:
+            guesser = SSHDetect(**coredev)
+            best_match = guesser.autodetect()
+            print(best_match)
+            print(guesser.potential_matches)
+            # Update the 'device' dictionary with the device_type
+            coredev["device_type"] = best_match
+            self.host = ConnectHandler(**coredev)
+            # print(r.__dict__)
+            # r.disconnect()
+        except Exception as err:
+            exception_type = type(err).__name__
+            self.error = self.msg[exception_type]
+            print("Error: ", self.msg[exception_type])
 
-    def find_edge(self, ip):
-        """Na podstawie routing wyznacza firewall'e, na których należy wykonać konfigurację
-        Wydruki błędów należy zamienić logowaniem.
-        Sygnalizpwanie błędów należy zamienić na try expect
-        """
-        self.error = ''
-        command = f'show ip route {ip}'
-        core_routes = config['core_routes']
-        m = []
-        #We assume that needed routing is not necessairly available in all core devices. It may omly exists in one.
-        #So, we need loop over listed devices until the proper routing is found.
-        for r in self.core:
-            self.coredev['host'] = r
-            #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
-            #If 'self.r' is a string type, it indicates that the device does not have an established session.
-            #If it is an object type, then 'self.r' signifies that a session has been established.
-            if isinstance(self.r, str):
-                # print("Creating new netmiko object")
-                try:
-                    guesser = SSHDetect(**self.coredev)
-                    best_match = guesser.autodetect()
-                    print(best_match)
-                    print(guesser.potential_matches)
-                    # Update the 'device' dictionary with the device_type
-                    self.coredev["device_type"] = best_match
-                    self.r = ConnectHandler(**self.coredev)
-                    # print(r.__dict__)
-                    # r.disconnect()
-                except Exception as err:
-                    exception_type = type(err).__name__
-                    self.error = self.msg[exception_type]
-                    print("Error: ", self.msg[exception_type])
-                    continue
-            output = self.r.send_command(command)
+        def show_ip_route(self, ip):
+            """
+            :param ip: adres, dla którego szukamy gatewaya
+            :return: gateway dla IP wejściowego
+            """
+            command = f'show ip route {ip}'
+            output = self.host.send_command(command)
             pattern = re.compile("\*via ((?:\d+\.){3}\d+)")
             m = pattern.findall(output)
-            #Simply having a routing path to the target IP is not enough. It must point at a firewall.
-            if m[0] in core_routes.keys():
-                return core_routes[m[0]]
-        #If not empty "m" exists, it means that at least one core device was accessible. It's sufficient for condition to conclude
-        #that required routing was not found. It means that the IP address we are searching for must be an inside IP.
-        if not m:
-            self.error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
-            print('Error: Connection to all core routers failed')
-            return 0
-        #
-        return 'inside'
-
-
+            return m[0]
+        #Po co to?:
+        #self.error = ''
+        #for i in config['core']:
+    #    self.core = i
+def find_edge(ip):
+    """Na podstawie routing wyznacza firewall'e, na których należy wykonać konfigurację
+    Wydruki błędów należy zamienić logowaniem.
+    Sygnalizpwanie błędów należy zamienić na try expect
+    :param ip: adres IP, o którym mamy się dowiedzieć, czy jest wewnętrzny, czy zewnętrzny, a jeśli zewnętrzny,
+     to za jakim firewallem się znajduje
+    :return: nazwa firewall'a, przez który IP wejściowy jest dostępny lub "inside", jeśli jest to IP wewnętrzny
+    """
+    
+    #We assume that needed routing is not necessairly available in all route sources. It may only exists in one.
+    #So, we need loop over listed devices until the proper routing is found.
+    for r in route_source:
+        #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
+        #If the first device in the list knows all routes, then only one connection is established.
+        if not isinstance(route_source[r]['name'], eval(route_source[r]['type'])):
+            # print("Creating new netmiko object")
+            klass = eval(route_source[r]['type'])
+            route_source[r]['name'] = klass(r)
+            #route_src_conns.append(r)
+        ip_to_edge_dev = r.show_ip_route(ip)
+        #Simply having a routing path to the target IP is not enough. It must point at a firewall.
+        if ip_to_edge_dev in routes_to_outside.keys():
+            return routes_to_outside[ip_to_edge_dev]
+    #If not empty "m" exists, it means that at least one core device was accessible. It's sufficient for condition to conclude
+    #that required routing was not found. It means that the IP address we are searching for must be an inside IP.
+    if not ip_to_edge_dev:
+        error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
+        print('Error: Connection to all sources of routes failed')
+        return 0
+    #
+    return 'inside'
 # Zakladamy, że może być wiele typów urządzeń brzegowych (na razie tylko Palo). Wprowadzamy nadklasę Edge, aby
 # wymusić konstrukcję klas dla innych urządzeń. Funkcja get_zone zwraca coś co jest potrzebne do stworzenia
 # reguły oprócz ip. Dla Palo są to zony. Dla ASA również.
@@ -111,13 +120,13 @@ class Palo(Edge):
     Instancja obiektu pozwala na komunikację z urządzeniem dzięki "conn". To nie są połączenia w sensie sesji tcp, bo
     mamy tu do czynienia z API po http. Są to sesje w sensie uwierzytelnienia. 
     """
-    def __init__(self, edev, user, password):
+    def __init__(self, fw):
         """
-        :param edev: fwi, fwe, itp. - urządzenie brzegowe (jego symbol z tabeli route_core)
+        :param fw: fwi, fwe, itp. - urządzenie brzegowe (jego symbol z edge_devices)
         """
-        self.edev = edev
-        self.devname = devinfo[edev][1]
-        self.vsys = devinfo[edev][2]
+        self.fw = fw
+        self.devname = firewalls[fw]['type']
+        self.vsys = firewalls[fw]['vsys']
         self.error = ''
         self.conn = Firewall(self.devname, api_username=user, api_password=password, vsys='vsys1')
         # obiekt Firewall powstanie nawet gdy nie powiedzie się uwierzytelnienie; nie pojawi się też żaden Exception
@@ -186,7 +195,7 @@ class Connections():
     self.connections_to_fw - lista zestawionych połączeń do FW.
     self.rules_fullinfo - komplet informacji do konfiguracji reguł tzn. z zonami i na jakim firewallu 
     """
-    def __init__(self, table, user, password):
+    def __init__(self, table):
         """Wyznacza ścieżkę dla reguły, czyli device and zone.
         Funkcja wyznacza listę firewalli do konfiguracji i uzupełnia tabelę reguł o zony. I to w jednej pętli.
         To jest za dużo jak na init. Ale ta klasa jest przeróbką z istniejącej wcześniej funkcji, która została
@@ -199,25 +208,24 @@ class Connections():
         """
         # table zawiera porty, interesują nas tutaj tylko adresy ip, więc porty odrzucamy
         ipset = [a[slice(0, 2)] for a in table]
-        router = Coredev(user, password)
         self.rules_fullinfo = []
         self.connections_to_fw = []
         for p in ipset:
-            edge_dev = []
+            fw_to_conf = []
             for i in range(0, 2):
                 # Wyznaczanie firewall'i do konfiguracji dla pary src dst (z routerów corowych)
                 ip = p[i]
                 ip_to_find = ip.split('/')[0]
-                found = router.find_edge(ip_to_find)
+                found = find_edge(ip_to_find)
                 if not found:
                     print(router.error)
                     raise regool.rgerrors.ChannelError(router.error)
                 if found != "inside":
                     # jeśli inside, to tylko jeden fw do konfiguracji
-                    edge_dev.append(found)
-            # Jeśli dostęp musi być konfigurowany na dwóch fw, to edge_dev będzie zawierał dwa elementy.
+                    fw_to_conf.append(found)
+            # Jeśli dostęp musi być konfigurowany na dwóch fw, to fw_to_conf będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
-            for edev in edge_dev:
+            for fw in fw_to_conf:
                 # Mając firewale z pętli wyżej(jeden lub dwa), zestawiamy połaczenia do nich, wyznaczamy zony dla każdej pary ip.
                 # Na każdym z tych firewalli dodajemy prawie taką samą regułę. Różnić się będą tylko nazwami zon.
                 fw_row_ininfo = []
@@ -225,25 +233,25 @@ class Connections():
                     ip = p[i]
                     fw_row_ininfo.append(ip)
                     ip_to_find = ip.split('/')[0]
-                    if not isinstance(devinfo[edev][1], eval(devinfo[edev][0])):
+                    if not isinstance(firewalls[fw]['name'], eval(firewalls[fw]['type'])):
                         # poniższa skomplikowany algorytm wynika z założenia, że mamy wiele typów urządzeń brzegowych
-                        klass = eval(devinfo[edev][0])
-                        devinfo[edev][1] = klass(edev, user, password)
-                        self.connections_to_fw.append(devinfo[edev][1])
-                        # od tej pory devinfo[edge_dev][1] staje się obiektem
-                        # pokazuje strukturę obiektu: print(devinfo[edev][1].__dict__)
-                        if devinfo[edev][1].error:
+                        klass = eval(firewalls[fw]['type'])
+                        firewalls[fw]['name'] = klass(fw)
+                        self.connections_to_fw.append(firewalls[fw]['name'])
+                        # od tej pory firewalls[fw_to_conf][1] staje się obiektem
+                        # pokazuje strukturę obiektu: print(firewalls[fw][1].__dict__)
+                        if firewalls[fw]['name'].error:
                             # ten wyjątek nie jest przechwytywany wyżej
                             # należy jeszcze dodać logowanie
-                            # print(f'Błąd połączenia z firewallem {edev}. Nie wprowadzono żadnych zmian')
-                            raise regool.rgerrors.ChannelError(f'Błąd połączenia z firewallem {edev}')
+                            # print(f'Błąd połączenia z firewallem {fw}. Nie wprowadzono żadnych zmian')
+                            raise regool.rgerrors.ChannelError(f'Błąd połączenia z firewallem {fw}')
                     try:
-                        zone = devinfo[edev][1].get_zone(ip_to_find)
+                        zone = firewalls[fw]['name'].get_zone(ip_to_find)
                     except regool.rgerrors.ChannelError:
                         # print(f'Błąd podczas wyznaczania ścieżki dla {ip_to_find}. Nie wprowadzono żadnych zmian.')
                         raise regool.rgerrors.ChannelError(f'Błąd podczas wyznaczania ścieżki dla {ip_to_find}.')
                     fw_row_ininfo.append(zone)
-                # fw_row_ininfo.insert(0, edev)
-                fw_row_ininfo.insert(0, edev)
+                # fw_row_ininfo.insert(0, fw)
+                fw_row_ininfo.insert(0, fw)
                 fw_row_ininfo.append(table[1][2])
                 self.rules_fullinfo.append(fw_row_ininfo)

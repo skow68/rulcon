@@ -1,19 +1,22 @@
-# Core routers
-#cisco_nxos_ssh - nazwa modułu, CiscoNxosSSH - nazwa obiektu w module
-core:
-- core-r1
-- core-r2
+# Routers that know all routes
+route_source:
+  rt1:
+    type: Cisco
+    name: rt1-001
+  rt2:
+    type: Cisco
+    name: rt2-002
 # Firewall data
 firewalls:
   fw1:
     type: Palo
     name: fw1-0001
-    zone: VR-1
+    vsys: VR-1
   fw2:
     type: Palo
     name: fw2-0002
-    zone: VR-2
-core_routes:
+    vsys: VR-2
+routes_to_outside:
   '192.168.245.138': fw1
   '192.168.245.139': fw2
 #naming convention - prefixes to objects created by the app should be uniq and complex to make sure that the objects
