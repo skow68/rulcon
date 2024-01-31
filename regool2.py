@@ -44,7 +44,7 @@ for row in worksheet.iter_rows(values_only=True, min_row=3):
 #with open('connections.pkl', 'rb') as inp:
 #    connections = pickle.load(inp)
 # nie przechwytujemy wyjątków z Connections, bo i tak powinny zakończyć działanie programu
-connections = regool.paths.Connections(basetable, user, password)
+connections = regool.paths.Connections(basetable)
 # Dzięki poniższej funkcji nie musimy za każdym testem wykonywać połączeń do urządzeń.
 # save_object(connections, 'connections.pkl')
 readytable = regool.rulcon.rule_factory(connections.rules_fullinfo)

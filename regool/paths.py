@@ -20,12 +20,7 @@ route_source = config['route_source']
 routes_to_outside = config['routes_to_outside']
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
-# devinfo = {
-#     'fwi': ['Palo', 'fwi-b01', 'VR-I'],
-#     'fwe': ['Palo', 'fwi-b01', 'VR-E'],
-#     'fwc': ['Palo', 'fwc-b01', 'VR-VSYS1-VRF'],
-#     'swift': ['Palo', 'fwc-b01', 'VR-VSYS2-SWIFT']
-# }
+
 sec_max_ao = 2
 #route_src_conns = []
 class Cisco():
@@ -34,7 +29,7 @@ class Cisco():
     def __init__(self, host):
         coredev = {
             #"device_type": "cisco_Nxos_ssh",
-            'host': host,
+            'host': host['name'],
             "device_type": "autodetect",
             "username": user,
             "password": password,
@@ -84,6 +79,7 @@ def find_edge(ip):
     
     #We assume that needed routing is not necessairly available in all route sources. It may only exists in one.
     #So, we need loop over listed devices until the proper routing is found.
+    ip_to_edge_dev = None
     for r in route_source:
         #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
         #If the first device in the list knows all routes, then only one connection is established.
@@ -96,13 +92,12 @@ def find_edge(ip):
         #Simply having a routing path to the target IP is not enough. It must point at a firewall.
         if ip_to_edge_dev in routes_to_outside.keys():
             return routes_to_outside[ip_to_edge_dev]
-    #If not empty "m" exists, it means that at least one core device was accessible. It's sufficient for condition to conclude
-    #that required routing was not found. It means that the IP address we are searching for must be an inside IP.
-    if not ip_to_edge_dev:
-        error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
-        print('Error: Connection to all sources of routes failed')
-        return 0
-    #
+    #If ip_to_edge_dev exists, it means that at least one core device was accessible. It's sufficient condition
+    #to conclude that required routing was not found. It means that the IP address we are searching for must be an inside IP.
+    if ip_to_edge_dev is None:
+          error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
+          print('Error: Connection to all sources of routes failed')
+          raise regool.rgerrors.NoRouteSource('Brak dostępu do routerów rdzeniowych')
     return 'inside'
 # Zakladamy, że może być wiele typów urządzeń brzegowych (na razie tylko Palo). Wprowadzamy nadklasę Edge, aby
 # wymusić konstrukcję klas dla innych urządzeń. Funkcja get_zone zwraca coś co jest potrzebne do stworzenia
@@ -212,6 +207,7 @@ class Connections():
         self.connections_to_fw = []
         for p in ipset:
             fw_to_conf = []
+            inside_counter = 0 #licznik wystąpienia IP w Inside
             for i in range(0, 2):
                 # Wyznaczanie firewall'i do konfiguracji dla pary src dst (z routerów corowych)
                 ip = p[i]
@@ -223,6 +219,12 @@ class Connections():
                 if found != "inside":
                     # jeśli inside, to tylko jeden fw do konfiguracji
                     fw_to_conf.append(found)
+                else:
+                    inside_counter += 1
+            if inside_counter > 1:
+                error = "SRC IP oraz DST IP znajdują się w strefie INSIDE. Nieprawidłowo sformułowana reguła dostępowa."
+                print('Error: ')
+                raise regool.rgerrors.NoRouteSource('Nieprawidłowo sformułowana reguła dostępowa.')
             # Jeśli dostęp musi być konfigurowany na dwóch fw, to fw_to_conf będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
             for fw in fw_to_conf:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import sys
 
 class MainError(Exception):
     pass
@@ -15,3 +15,7 @@ class ToManyElementsError(Exception):
 
 class UnexpectedExistsError(Exception):
     pass
+
+
+class NoRouteSource(Exception):
+    sys.exit(1)
