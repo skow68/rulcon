@@ -82,7 +82,8 @@ def find_edge(ip):
     ip_to_edge_dev = None
     for r in route_source:
         #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
-        #If the first device in the list knows all routes, then only one connection is established.
+        #If the first route source in config list knows all routes, then only one connection is established. The rest of
+        #route sources are engaged if the first ons doesn't know route we are looking for.
         if not isinstance(route_source[r]['name'], eval(route_source[r]['type'])):
             # print("Creating new netmiko object")
             klass = eval(route_source[r]['type'])
@@ -94,7 +95,8 @@ def find_edge(ip):
             return routes_to_outside[ip_to_edge_dev]
     #If ip_to_edge_dev exists, it means that at least one core device was accessible. It's sufficient condition
     #to conclude that required routing was not found. It means that the IP address we are searching for must be an inside IP.
-    if ip_to_edge_dev is None:
+    if ip_to_edge_dev is False:
+          #Jeśli chociaż jeden route source odpowiedział, to ip_to_edge_dev musi coś zawierać
           error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
           print('Error: Connection to all sources of routes failed')
           raise regool.rgerrors.NoRouteSource('Brak dostępu do routerów rdzeniowych')

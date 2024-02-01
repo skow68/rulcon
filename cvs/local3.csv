@@ -1,0 +1,8 @@
+Sk¹d;;Dok¹d;;
+Nazwa src;Adres src;Nazwa dst;Adres dst;Port dst
+bamboo1;172.18.5.8;dst1;192.168.170.71;80
+bamboo2;172.18.5.9;dst1;192.168.170.71;80
+bamboo3;172.18.5.10;dst1;192.168.170.71;443
+amram1;10.143.135.20;adst1;172.31.1.72;80
+amram1;10.143.135.20;adst1;172.31.1.73;80
+amram1;10.143.135.20;adst1;172.31.1.74;80

@@ -4,5 +4,3 @@ i w przypadku błędu uruchamiany jest rise naszego custom Exception.
 Obsługa custom Exception jest umiejscowiona tylko w kodzie głównym i tutaj generowane są komunikaty dla użytkownika.
 Natomiast logi o błędach generowane są w obiektach i funkcjach.
 
-------------
-------------
