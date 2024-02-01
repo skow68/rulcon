@@ -11,11 +11,15 @@ class ChannelError(Exception):
 
 class ToManyElementsError(Exception):
     pass
-
+0
 
 class UnexpectedExistsError(Exception):
     pass
 
 
 class NoRouteSource(Exception):
+    sys.exit(1)
+
+
+class EntryDataError(Exception):
     sys.exit(1)

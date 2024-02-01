@@ -89,7 +89,7 @@ def find_edge(ip):
             klass = eval(route_source[r]['type'])
             route_source[r]['name'] = klass(r)
             #route_src_conns.append(r)
-        ip_to_edge_dev = r.show_ip_route(ip)
+        ip_to_edge_dev = route_source[r]['name'].show_ip_route(ip)
         #Simply having a routing path to the target IP is not enough. It must point at a firewall.
         if ip_to_edge_dev in routes_to_outside.keys():
             return routes_to_outside[ip_to_edge_dev]
@@ -226,7 +226,7 @@ class Connections():
             if inside_counter > 1:
                 error = "SRC IP oraz DST IP znajdują się w strefie INSIDE. Nieprawidłowo sformułowana reguła dostępowa."
                 print('Error: ')
-                raise regool.rgerrors.NoRouteSource('Nieprawidłowo sformułowana reguła dostępowa.')
+                raise regool.rgerrors.EntryDataError('Nieprawidłowo sformułowana reguła dostępowa.')
             # Jeśli dostęp musi być konfigurowany na dwóch fw, to fw_to_conf będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
             for fw in fw_to_conf:
