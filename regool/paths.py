@@ -9,6 +9,7 @@ from panos.errors import PanCommitNotNeeded, PanDeviceError, PanObjectMissing, P
 from panos.firewall import Firewall
 from panos.policies import Rulebase, SecurityRule
 from panos.objects import AddressObject, AddressGroup
+from logger_setup import logger
 import yaml
 with open('config.yml') as confile:
     try:
@@ -52,7 +53,7 @@ class Cisco():
         except Exception as err:
             exception_type = type(err).__name__
             self.error = self.msg[exception_type]
-            print("Error: ", self.msg[exception_type])
+            logger.info(self.msg[exception_type])
 
         def show_ip_route(self, ip):
             """
@@ -79,7 +80,7 @@ def find_edge(ip):
     
     #We assume that needed routing is not necessairly available in all route sources. It may only exists in one.
     #So, we need loop over listed devices until the proper routing is found.
-    ip_to_edge_dev = None
+    ip_to_edge_dev = []
     for r in route_source:
         #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
         #If the first route source in config list knows all routes, then only one connection is established. The rest of
@@ -122,17 +123,17 @@ class Palo(Edge):
         :param fw: fwi, fwe, itp. - urządzenie brzegowe (jego symbol z edge_devices)
         """
         self.fw = fw
-        self.devname = firewalls[fw]['type']
+        self.devname = firewalls[fw]['name']
         self.vsys = firewalls[fw]['vsys']
-        self.error = ''
         self.conn = Firewall(self.devname, api_username=user, api_password=password, vsys='vsys1')
         # obiekt Firewall powstanie nawet gdy nie powiedzie się uwierzytelnienie; nie pojawi się też żaden Exception
         # Poniższy show ma za zadanie sprowokować exception w przypadku, gdy coś jest nie tak z obiektem.
         try:
             self.conn.op("show system info")
-        except PanDeviceError as err:
-            self.error = err
-            print(f'Error: Can not connect to {self.devname}: ', self.error)
+        except PanDeviceError as e:
+            err = f'Can not connect to {self.devname}:  {e}'
+            logger.error(err)
+            raise regool.rgerrors.ConnectError(err)
 
     def get_zone(self, addr_ip):
         """wyznaczaa Zone dla adresu IP"""
@@ -140,11 +141,10 @@ class Palo(Edge):
                 </routing></test>'
         try:
             ans_gw = self.conn.op(cmd, cmd_xml=False)
-        except PanDeviceError as err:
-            self.error = err
-            print(f'Error: Routing table from {self.devname}: ', self.error)
-            raise regool.rgerrors.ChannelError(f'Problem z tablicą routingu na {self.devname}')
-            return
+        except PanDeviceError as e:
+            err = f'Can not get routing table from {self.devname}: {e}'
+            logger.error(err)
+            raise regool.rgerrors.GetZoneError(err)
         interface = ans_gw.find("./result/interface").text
         cmd = f'<show><interface>{interface}</interface></show>'
         ans_int = self.conn.op(cmd, cmd_xml=False)
@@ -161,7 +161,9 @@ class Palo(Edge):
         agname = config['convention']['addr-group-pref'] + name
         AddressObject.refreshall(fw, add=True)
         if len(a_list) > sec_max_ao:
-            raise regool.rgerrors.ToManyElementsError(f'Ilość adresów do dodania przekracza ustalony próg {sec_max_ao}')
+            err = f'Ilość adresów do dodania przekracza ustalony próg {sec_max_ao}'
+            logger.error(err)
+            raise regool.rgerrors.ToManyElementsError(err)
         ao2add = []
         for a in a_list:
             ao = fw.find(a, AddressObject)
@@ -181,7 +183,9 @@ class Palo(Edge):
             fw.add(ag)
             ag.create()
         else:
-            raise regool.rgerrors.UnexpectedExistsError(f'Element {ag.name} istnieje chociaż nie powinien')
+            err = f'Element {ag.name} istnieje chociaż nie powinien'
+            logger.error = err
+            raise regool.rgerrors.UnexpectedExistsError(err)
         return ag.name
 
 
@@ -197,7 +201,6 @@ class Connections():
         Funkcja wyznacza listę firewalli do konfiguracji i uzupełnia tabelę reguł o zony. I to w jednej pętli.
         To jest za dużo jak na init. Ale ta klasa jest przeróbką z istniejącej wcześniej funkcji, która została
         dobrze przetestowana. Nie warto więc przerabiać.
-        :param user, password: Credentials for login (tacacs)
         :param table: Lista list (tabela). Surowe dane z wniosku.
                     [[src, dst, port], ...]
         :returns: Do każdego wiersza z tabeli wejściowej dodawane są informacje o dev i zone wg wzoru:
@@ -207,25 +210,22 @@ class Connections():
         ipset = [a[slice(0, 2)] for a in table]
         self.rules_fullinfo = []
         self.connections_to_fw = []
-        for p in ipset:
+        for row in ipset:
             fw_to_conf = []
             inside_counter = 0 #licznik wystąpienia IP w Inside
             for i in range(0, 2):
                 # Wyznaczanie firewall'i do konfiguracji dla pary src dst (z routerów corowych)
-                ip = p[i]
+                ip = row[i]
                 ip_to_find = ip.split('/')[0]
                 found = find_edge(ip_to_find)
-                if not found:
-                    print(router.error)
-                    raise regool.rgerrors.ChannelError(router.error)
                 if found != "inside":
                     # jeśli inside, to tylko jeden fw do konfiguracji
                     fw_to_conf.append(found)
                 else:
                     inside_counter += 1
             if inside_counter > 1:
-                error = "SRC IP oraz DST IP znajdują się w strefie INSIDE. Nieprawidłowo sformułowana reguła dostępowa."
-                print('Error: ')
+                err = "SRC IP oraz DST IP znajdują się w strefie INSIDE. Nieprawidłowo sformułowana reguła dostępowa."
+                logger.erro(err)
                 raise regool.rgerrors.EntryDataError('Nieprawidłowo sformułowana reguła dostępowa.')
             # Jeśli dostęp musi być konfigurowany na dwóch fw, to fw_to_conf będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
@@ -234,7 +234,7 @@ class Connections():
                 # Na każdym z tych firewalli dodajemy prawie taką samą regułę. Różnić się będą tylko nazwami zon.
                 fw_row_ininfo = []
                 for i in range(0, 2):
-                    ip = p[i]
+                    ip = row[i]
                     fw_row_ininfo.append(ip)
                     ip_to_find = ip.split('/')[0]
                     if not isinstance(firewalls[fw]['name'], eval(firewalls[fw]['type'])):
@@ -243,17 +243,8 @@ class Connections():
                         firewalls[fw]['name'] = klass(fw)
                         self.connections_to_fw.append(firewalls[fw]['name'])
                         # od tej pory firewalls[fw_to_conf][1] staje się obiektem
-                        # pokazuje strukturę obiektu: print(firewalls[fw][1].__dict__)
-                        if firewalls[fw]['name'].error:
-                            # ten wyjątek nie jest przechwytywany wyżej
-                            # należy jeszcze dodać logowanie
-                            # print(f'Błąd połączenia z firewallem {fw}. Nie wprowadzono żadnych zmian')
-                            raise regool.rgerrors.ChannelError(f'Błąd połączenia z firewallem {fw}')
-                    try:
-                        zone = firewalls[fw]['name'].get_zone(ip_to_find)
-                    except regool.rgerrors.ChannelError:
-                        # print(f'Błąd podczas wyznaczania ścieżki dla {ip_to_find}. Nie wprowadzono żadnych zmian.')
-                        raise regool.rgerrors.ChannelError(f'Błąd podczas wyznaczania ścieżki dla {ip_to_find}.')
+                        # pokazuje strukturę obiektu: print(firewalls[fw][nazwa].__dict__)
+                    zone = firewalls[fw]['name'].get_zone(ip_to_find)
                     fw_row_ininfo.append(zone)
                 # fw_row_ininfo.insert(0, fw)
                 fw_row_ininfo.insert(0, fw)

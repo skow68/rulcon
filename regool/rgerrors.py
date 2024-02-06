@@ -9,8 +9,16 @@ class ChannelError(Exception):
     pass
 
 
+class ConnectError(Exception):
+    sys.exit(1)
+
+
+class GetZoneError(Exception):
+    sys.exit(1)
+
+
 class ToManyElementsError(Exception):
-    pass
+    sys.exit(1)
 0
 
 class UnexpectedExistsError(Exception):
