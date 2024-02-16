@@ -1,4 +1,4 @@
-Sk¹d;;Dok¹d;;
+
 Nazwa src;Adres src;Nazwa dst;Adres dst;Port dst
 sa1;172.18.15.129;dst1;192.168.170.71;80
 sa2;10.143.135.0/24;dst2;209.111.245.19;80
