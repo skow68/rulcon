@@ -10,15 +10,10 @@ from panos.firewall import Firewall
 from panos.policies import Rulebase, SecurityRule
 from panos.objects import AddressObject, AddressGroup
 from logger_setup import logger
-import yaml
-with open('config.yml') as confile:
-    try:
-        config = yaml.safe_load(confile)
-    except yaml.YAMLError as exc:
-        print(exc)
-firewalls = config['firewalls']
-route_source = config['route_source']
-routes_to_outside = config['routes_to_outside']
+import config
+firewalls = config.firewalls
+route_source = config.route_source
+routes_to_outside = config.routes_to_outside
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
 
