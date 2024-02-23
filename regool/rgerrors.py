@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 class MainError(Exception):
@@ -10,24 +9,24 @@ class ChannelError(Exception):
 
 
 class ConnectError(Exception):
-    sys.exit(1)
+    pass
 
 
 class GetZoneError(Exception):
-    sys.exit(1)
+    pass
 
 
 class ToManyElementsError(Exception):
-    sys.exit(1)
-0
+    pass
+
 
 class UnexpectedExistsError(Exception):
     pass
 
 
 class NoRouteSource(Exception):
-    sys.exit(1)
+    pass
 
 
 class EntryDataError(Exception):
-    sys.exit(1)
+    pass

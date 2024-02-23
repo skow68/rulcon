@@ -1,6 +1,3 @@
-import csv
-
-with open('./csv/local2.csv', 'r') as csv_file:
-    reader = csv.reader(csv_file)
-    input_rules = [row for row in reader]
-print(input_rules)
+import regool.input_data
+lista = regool.input_data.get_rules('csv/local2.csv')
+print( f'lista {lista}' )

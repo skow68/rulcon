@@ -2,6 +2,7 @@
 # import sys
 import re
 import warnings
+import sys
 import regool.rgerrors
 from netmiko import SSHDetect, ConnectHandler
 from netmiko.cisco import CiscoNxosSSH  # tylko dla funkcji isinstance
@@ -9,11 +10,11 @@ from panos.errors import PanCommitNotNeeded, PanDeviceError, PanObjectMissing, P
 from panos.firewall import Firewall
 from panos.policies import Rulebase, SecurityRule
 from panos.objects import AddressObject, AddressGroup
-from logger_setup import logger
+from regool.logger_setup import logger
 import config
 firewalls = config.firewalls
 route_source = config.route_source
-routes_to_outside = config.routes_to_outside
+routes_to_outside = config.route_to_outside
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
 
@@ -92,10 +93,11 @@ def find_edge(ip):
     #If ip_to_edge_dev exists, it means that at least one core device was accessible. It's sufficient condition
     #to conclude that required routing was not found. It means that the IP address we are searching for must be an inside IP.
     if ip_to_edge_dev is False:
-          #Jeśli chociaż jeden route source odpowiedział, to ip_to_edge_dev musi coś zawierać
-          error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
-          print('Error: Connection to all sources of routes failed')
-          raise regool.rgerrors.NoRouteSource('Brak dostępu do routerów rdzeniowych')
+        #Jeśli chociaż jeden route source odpowiedział, to ip_to_edge_dev musi coś zawierać
+        error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
+        print('Error: Connection to all sources of routes failed')
+        raise regool.rgerrors.NoRouteSource('Brak dostępu do routerów rdzeniowych')
+        sys.exit(1)
     return 'inside'
 # Zakladamy, że może być wiele typów urządzeń brzegowych (na razie tylko Palo). Wprowadzamy nadklasę Edge, aby
 # wymusić konstrukcję klas dla innych urządzeń. Funkcja get_zone zwraca coś co jest potrzebne do stworzenia
@@ -129,6 +131,7 @@ class Palo(Edge):
             err = f'Can not connect to {self.devname}:  {e}'
             logger.error(err)
             raise regool.rgerrors.ConnectError(err)
+            sys.exit(1)
 
     def get_zone(self, addr_ip):
         """wyznaczaa Zone dla adresu IP"""
@@ -140,6 +143,7 @@ class Palo(Edge):
             err = f'Can not get routing table from {self.devname}: {e}'
             logger.error(err)
             raise regool.rgerrors.GetZoneError(err)
+            sys.exit(1)
         interface = ans_gw.find("./result/interface").text
         cmd = f'<show><interface>{interface}</interface></show>'
         ans_int = self.conn.op(cmd, cmd_xml=False)
@@ -159,6 +163,7 @@ class Palo(Edge):
             err = f'Ilość adresów do dodania przekracza ustalony próg {sec_max_ao}'
             logger.error(err)
             raise regool.rgerrors.ToManyElementsError(err)
+            sys.exit(1)
         ao2add = []
         for a in a_list:
             ao = fw.find(a, AddressObject)
@@ -222,6 +227,7 @@ class Connections():
                 err = "SRC IP oraz DST IP znajdują się w strefie INSIDE. Nieprawidłowo sformułowana reguła dostępowa."
                 logger.erro(err)
                 raise regool.rgerrors.EntryDataError('Nieprawidłowo sformułowana reguła dostępowa.')
+                sys.exit(1)
             # Jeśli dostęp musi być konfigurowany na dwóch fw, to fw_to_conf będzie zawierał dwa elementy.
             # Jeśli na jednym - to jeden. Czyli poniższa pętla przekręci się raz lub dwa razy.
             for fw in fw_to_conf:
