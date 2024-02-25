@@ -31,9 +31,20 @@ def get_rules(file_name):
                 reader = csv.reader(file, delimiter=";")
                 input_rules = [row for row in reader]
             elif extension == "xls":
-                # import openpyxl
-                # workbook = openpyxl.load_workbook(file)
-                # worksheet = workbook["Arkusz1"]
+                """
+                import openpyxl
+                workbook = openpyxl.load_workbook(file)
+                worksheet = workbook["Arkusz1"]
+                my_dns = {}
+                basetable = []
+                for row in worksheet.iter_rows(values_only = True, min_row=3):
+                    my_dns[row[1]] = row[0]
+                    my_dns[row[2]] = row[3]
+                    dst = row[3]
+                    src = row[1]
+                    port = row[4]
+                    basetable.append([src, dst, port])
+                """
                 print("to be done")
             for row in input_rules:
                 if (
@@ -72,7 +83,6 @@ def validate_ip(ip_address):
         if all(0 <= int(octet) <= 255 for octet in octets) and (
             network_length is None or 0 <= network_length <= 32
         ):
-            print("Valid IP address with optional netmask")
             return True
         else:
             logger.error(f"The IP address {ip_address} is invalid")

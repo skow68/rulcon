@@ -7,6 +7,7 @@ import getpass
 import warnings
 import openpyxl
 import dill as pickle
+import regool.input_data
 
 # import regool.devices
 # import regool.rgerrors
@@ -29,19 +30,7 @@ print(user)
 # user = ""
 # password = getpass.getpass()
 password = ""
-workbook = openpyxl.load_workbook("local3.xlsx")
-worksheet = workbook["Arkusz1"]
-max_og = 2
-max_port = 2
-my_dns = {}
-basetable = []
-for row in worksheet.iter_rows(values_only=True, min_row=3):
-    my_dns[row[1]] = row[0]
-    my_dns[row[2]] = row[3]
-    dst = row[3]
-    src = row[1]
-    port = row[4]
-    basetable.append([src, dst, port])
+basetable = regool.input_data.get_rules('csv/local2.csv')
 # rules_fullinfo ma format listy list: [['pfe', '172.18.15.129', 'DMZE-OUTSIDE', '192.168.170.71', 'DMZE-INSIDE', 80]]
 # Podczas testów zamiast ściągać dane z urządzeń pobieramy je z obiektu wcześniej zachowanego w pliku.
 # with open('connections.pkl', 'rb') as inp:
