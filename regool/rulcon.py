@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Algorytmy optymalizujące reguły.
 Podczas modyfikacji rule_construct należy odkomentować fragmenty wyświetlające tabele texttable.
 Bez tego trudno zrozumieć algorytm.
@@ -42,7 +41,6 @@ def rule_factory(routetable):
     # kluczem jest dev i zony, bo dla tej trójki reguły muszą być oddzielne
     for r in routetable:
         rule_paths[str([r[0], r[2], r[4]])].append([r[1], r[3], r[5]])
-    """
     # ----presentation
     table = texttable.Texttable()
     table.set_max_width(140)
@@ -51,7 +49,7 @@ def rule_factory(routetable):
     print("ROUTEPATHS")
     print(table.draw())
     # ----------------
-    """
+    
     ready_for_edge = {}
     for r_path, r in rule_paths.items():
         rulset = rule_construct(r)
@@ -60,8 +58,13 @@ def rule_factory(routetable):
         # formatowanie wyjścia: zone src, zone dst, ip src, ip dst, port
         rulset_formated = [list_r_path[1:] + x for x in rulset]
         # wyjście jest słownikiem, gdzie kluczem jest dev.
-        ready_for_edge[list_r_path[0]] = rulset_formated
-    """
+        if list_r_path[0] in ready_for_edge:
+            rulset_formated.append(ready_for_edge[list_r_path[0]])
+            ready_for_edge[list_r_path[0]] = rulset_formated
+        else:
+            ready_for_edge[list_r_path[0]] = rulset_formated
+    print("ready_for_edge:")
+    print(ready_for_edge)
     # ----presentation
     print("READY FOR EDGE")
     print("Uwaga: Wydruk nie odpowiada w pełni zwracanej strukturze, ale treść jest ok")
@@ -71,7 +74,6 @@ def rule_factory(routetable):
             for rrr in rr:
                 print("\t", rrr)
     # ----------------
-    """
     return ready_for_edge
 
 
@@ -95,7 +97,7 @@ def rule_construct(basetable):
         src = row[0]
         by_dst[dst].append(src)
         by_src[src].append(dst)
-    """
+
     tabledst = texttable.Texttable()
     for d in by_dst:
         tabledst.add_row([by_dst[d], d])
@@ -106,7 +108,7 @@ def rule_construct(basetable):
     print(tabledst.draw())
     print()
     print(tablesrc.draw())
-    """
+
     # First opt
     # w/g zasady: liczba src w tabeli by_dst i liczba dst w tabeli by_src są decydujące; pierwszeństwo ma ta reguła,
     # dla której ta liczba jest większa; chodzi o to, aby zgrupować w jednej regule jak najwięcej ip, czy to src,
@@ -131,7 +133,7 @@ def rule_construct(basetable):
     delete = [key for key in by_src if by_src[key] == []]
     for key in delete:
         del by_src[key]
-    """
+    
     tabledst = texttable.Texttable()
     for d in by_dst:
         tabledst.add_row([by_dst[d], d])
@@ -142,7 +144,7 @@ def rule_construct(basetable):
     for s in by_src:
         tablesrc.add_row([s, by_src[s]])
     print(tablesrc.draw())
-    """
+    
     #  Second opt
     # Scalanie reguł, gdzie src i dst są takie same, a różnią się tylko porty
     # Tworzony jest hash, które kluczem jest lista src z poprzedniej optymalizacji, a wartością lista par ipdst:port
@@ -161,13 +163,13 @@ def rule_construct(basetable):
             src_ip_lst = str(by_dst[dst_ipport])
             by_srclist[src_ip_lst].append(dst_ipport)
     # uwaga: elementy by_srclist to str
-    """
+    
     tabledst = texttable.Texttable()
     for slst in by_srclist:
         tabledst.add_row([slst, by_srclist[slst]])
     print("After second opt")
     print(tabledst.draw())
-    """
+    
     # tabela by_src:
     # z tabelą by_src jest łatwiej bo strona src nie zawiera portów;
     by_dstlist = defaultdict(list)
@@ -190,13 +192,13 @@ def rule_construct(basetable):
     # rev_by_srclist = {val: key for (key, val) in by_srclist.items()}
     # łączenie dict:
     rule_form_1 = {**by_srclist, **rev_by_dstlist}
-    """
+    
     tableform1 = texttable.Texttable()
     for lst in rule_form_1:
         tableform1.add_row([lst, rule_form_1[lst]])
     print("As before, but in one table")
     print(tableform1.draw())
-    """
+    
     # Third opt
     # Wyłuskanie portów z każdego wiersza i wrzucenie do wspólnego worka.
     # Oddzielnie są wyłuskiwane nazwy usług (port_apps_list). Dla nich będą tworzone oddzielne reguły.

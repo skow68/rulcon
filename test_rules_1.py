@@ -17,5 +17,8 @@ for row in input_rules:
     dst_zone = row[6]
     port = row[7]
     fullinfo_table.append([dev, src, src_zone, dst, dst_zone, port])
+print('Input:')
+print(fullinfo_table)
 readytable = regool.rulcon.rule_factory(fullinfo_table)
+print('Output:')
 print(readytable)
