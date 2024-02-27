@@ -42,12 +42,12 @@ def rule_factory(routetable):
     for r in routetable:
         rule_paths[str([r[0], r[2], r[4]])].append([r[1], r[3], r[5]])
     # ----presentation
-    table = texttable.Texttable()
+    """ table = texttable.Texttable()
     table.set_max_width(140)
     for r in rule_paths:
         table.add_row([r, rule_paths[r]])
     print("ROUTEPATHS")
-    print(table.draw())
+    print(table.draw()) """
     # ----------------
     
     ready_for_edge = {}
@@ -63,16 +63,14 @@ def rule_factory(routetable):
             ready_for_edge[list_r_path[0]] = rulset_formated
         else:
             ready_for_edge[list_r_path[0]] = rulset_formated
-    print("ready_for_edge:")
-    print(ready_for_edge)
     # ----presentation
-    print("READY FOR EDGE")
+    """ print("READY FOR EDGE")
     print("Uwaga: Wydruk nie odpowiada w pełni zwracanej strukturze, ale treść jest ok")
     for r in ready_for_edge:
         for rr in ready_for_edge[r]:
             print(r, ":")
             for rrr in rr:
-                print("\t", rrr)
+                print("\t", rrr) """
     # ----------------
     return ready_for_edge
 
@@ -100,14 +98,14 @@ def rule_construct(basetable):
 
     tabledst = texttable.Texttable()
     for d in by_dst:
-        tabledst.add_row([by_dst[d], d])
+        tabledst.add_row([d, by_dst[d]])
     tablesrc = texttable.Texttable()
     for s in by_src:
         tablesrc.add_row([s, by_src[s]])
-    print("Before opt")
+    """ print("Before opt")
     print(tabledst.draw())
     print()
-    print(tablesrc.draw())
+    print(tablesrc.draw()) """
 
     # First opt
     # w/g zasady: liczba src w tabeli by_dst i liczba dst w tabeli by_src są decydujące; pierwszeństwo ma ta reguła,
@@ -122,7 +120,7 @@ def rule_construct(basetable):
                 # by_dst[d].remove(s)
                 tmp_dst.append(s)
         tmp_dst = list(set(tmp_dst))
-        # ta pętla jest tylko dlatego, że nie można usuwać elementów z listy by_dst[d] w porzedniej pętli,
+        # ta pętla jest tylko dlatego, że nie można usuwać elementów z listy by_dst[d] w poprzedniej pętli,
         # bo iteracja idzie właśnie po tej liście
         for ss in tmp_dst:
             by_dst[d].remove(ss)
@@ -133,17 +131,18 @@ def rule_construct(basetable):
     delete = [key for key in by_src if by_src[key] == []]
     for key in delete:
         del by_src[key]
-    
+    # ----presentation
+    """    print("After first opt")
     tabledst = texttable.Texttable()
     for d in by_dst:
         tabledst.add_row([by_dst[d], d])
-    print("After first opt")
     print(tabledst.draw())
     print()
     tablesrc = texttable.Texttable()
     for s in by_src:
         tablesrc.add_row([s, by_src[s]])
-    print(tablesrc.draw())
+    print(tablesrc.draw()) """
+    # ----presentation
     
     #  Second opt
     # Scalanie reguł, gdzie src i dst są takie same, a różnią się tylko porty
@@ -164,11 +163,11 @@ def rule_construct(basetable):
             by_srclist[src_ip_lst].append(dst_ipport)
     # uwaga: elementy by_srclist to str
     
-    tabledst = texttable.Texttable()
+    """ tabledst = texttable.Texttable()
     for slst in by_srclist:
         tabledst.add_row([slst, by_srclist[slst]])
     print("After second opt")
-    print(tabledst.draw())
+    print(tabledst.draw()) """
     
     # tabela by_src:
     # z tabelą by_src jest łatwiej bo strona src nie zawiera portów;
@@ -193,14 +192,14 @@ def rule_construct(basetable):
     # łączenie dict:
     rule_form_1 = {**by_srclist, **rev_by_dstlist}
     
-    tableform1 = texttable.Texttable()
+    """ tableform1 = texttable.Texttable()
     for lst in rule_form_1:
         tableform1.add_row([lst, rule_form_1[lst]])
     print("As before, but in one table")
-    print(tableform1.draw())
+    print(tableform1.draw()) """
     
     # Third opt
-    # Wyłuskanie portów z każdego wiersza i wrzucenie do wspólnego worka.
+    # Tu już mamy kompromis. Wyłuskanie portów z każdego wiersza i wrzucenie do wspólnego worka. 
     # Oddzielnie są wyłuskiwane nazwy usług (port_apps_list). Dla nich będą tworzone oddzielne reguły.
     rule_form_2 = []
     for src_lst, dst_lst in rule_form_1.items():
@@ -225,7 +224,12 @@ def rule_construct(basetable):
             rule_form_2.append([src_lst, ip_list, port_list, ""])
         if port_apps_list:
             rule_form_2.append([src_lst, ip_apps_list, "", port_apps_list])
-    return(rule_form_2)
+    tableform2 = texttable.Texttable()
+    for lst in rule_form_2:
+        tableform2.add_row([lst[0], lst[1], lst[2], lst[3]])
+    """    print("THIRD OPT")
+    print(tableform2.draw())
+    return(rule_form_2) """
     """
         print('srcname', row[0])
         print('srcaddress', row[1])

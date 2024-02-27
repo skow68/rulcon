@@ -42,15 +42,17 @@ connections = regool.paths.Connections(basetable)
 readytable = regool.rulcon.rule_factory(connections.rules_fullinfo)
 # print(readytable)
 reqid = "535353"
-for connection in connections.connections_to_fw:  # lista obiektów Palo
+max_og = 4 #jeśli ilość adresów w regule jest większa, to tworzymy dla nich grupę adresów.
+max_port = 4 #podobnie jak wyżej, ale dla portów tcp
+for connection in connections.connections_to_fw:  # lista obiektów fw, o których wiemy, że mająbyć konfigurowane
     print("EDEV:", connection.edev)
-    for rule in readytable[connection.edev]:
+    for rule in readytable[connection.edev]: #readytable zawiera hashe, gdzie kluczami są fw, a wartościami lista reguł
         print("rule:", rule)
         if len(rule[2]) > max_og:
-            rule[2] = connection.compress2ag(rule[2], reqid)
+            rule[2] = connection.create_ag(rule[2], reqid)
         if len(rule[3]) > max_og:
-            rule[3] = connection.compress2ag(rule[3], reqid)
+            rule[3] = connection.create_ag(rule[3], reqid)
         if len(rule[4]) > max_port:
-            rule[4] = connection.compress2sg(rule[4], reqid)
+            rule[4] = connection.create_sg(rule[4], reqid)
         if len(rule[5]) > max_port:
-            rule[5] = connection.compress2sg(rule[5], reqid)
+            rule[5] = connection.create_sg(rule[5], reqid)

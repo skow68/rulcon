@@ -1,5 +1,6 @@
 import csv
 import regool.rulcon
+"""Test rulcon.rule_factory"""
 file_name = 'csv/local3.csv'
 with open(file_name, "r") as file:
     reader = csv.reader(file, delimiter=";")
@@ -17,6 +18,7 @@ for row in input_rules:
     dst_zone = row[6]
     port = row[7]
     fullinfo_table.append([dev, src, src_zone, dst, dst_zone, port])
+    #fullinfo_table - symulacja tego co nam daje regool.paths.Connections.rules_fullinfo
 print('Input:')
 print(fullinfo_table)
 readytable = regool.rulcon.rule_factory(fullinfo_table)

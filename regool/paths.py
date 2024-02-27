@@ -15,6 +15,7 @@ import config
 firewalls = config.firewalls
 route_source = config.route_source
 routes_to_outside = config.route_to_outside
+convention = config.convention
 # warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
 warnings.filterwarnings('ignore', '.*deprecated.*')
 
@@ -150,17 +151,17 @@ class Palo(Edge):
         out_zone = ans_int.find("./result/ifnet/zone").text
         return out_zone
 
-    def compress2ag(self, a_list, name):
+    def create_ag(self, a_list, name):
         """Tworzy obiekt grupujący adresy ip (ag - address group)
         :param a_list: Lista z adresami IP
         :param name: Base Name, na podstawie której budowane są inne nazwy np. ID wniosku
         :returns: Nazwa obiktu grupy adresów
         """
         fw = self.conn
-        agname = config['convention']['addr-group-pref'] + name
+        agname = convention['addr-group-prefix'] + name
         AddressObject.refreshall(fw, add=True)
-        if len(a_list) > sec_max_ao:
-            err = f'Ilość adresów do dodania przekracza ustalony próg {sec_max_ao}'
+        if len(a_list) > config.limits['max_ao_in_ag']:
+            err = f'Ilość adresów do dodania przekracza ustalony próg {config.limits['max_ao_in_ag']}'
             logger.error(err)
             raise regool.rgerrors.ToManyElementsError(err)
             sys.exit(1)
@@ -187,6 +188,9 @@ class Palo(Edge):
             logger.error = err
             raise regool.rgerrors.UnexpectedExistsError(err)
         return ag.name
+    def create_sg(self, s_list, name):
+        #to be done
+        return
 
 
 class Connections():
