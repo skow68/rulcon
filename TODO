@@ -1,3 +1,5 @@
+
+
 1. Dodać dodawanie FQDN w funkcji create_ag. Sprawdzamy, czy adres ma format IP czy nazwy domenowej i w zależności
 od tego dodaje odpowiedni obiekt.
 2. create_ag musi tworzyć obiekty ao dla IP z nazwą zawierającą nazwę skróconą z inputu. Zasada: jeśli adres jest IP, to 
@@ -6,3 +8,8 @@ nazwa skrócona musi być. Jeśli adres jest domenowy, to nie musi.
 - jeśli adres jest IP, to nazwa jest obowiązkowa i nie url. Jeśli już będzie to url, to bierzemy tylko pierwszy jej
  człon; np. 10.1.22.33. host1.bbb.com.pl -> to nazwa ao host1-10.1.22.33.
 - jeśli adres jest url, to nazwę ignorujemy
+4. Lista portów tcp, oddzielona przecinkiem - należy rozdzielić na oddzielne wiersze na początku i procesować dalej,
+jakby były oddzielnymi regułami.
+5. Dopasowanie do istniejących reguł
+5.1 Wypracować metodę wyszukiwania
+5.2 Należy to robić przed optymalizacją. 
