@@ -12,4 +12,4 @@ nazwa skrócona musi być. Jeśli adres jest domenowy, to nie musi.
 jakby były oddzielnymi regułami.
 5. Dopasowanie do istniejących reguł
 5.1 Wypracować metodę wyszukiwania
-5.2 Należy to robić przed optymalizacją. 
+5.2 Należy to robić przed optymalizacją na bazie dwóch tabel by_src i by_dst. Nie należy przesadzzać z tą optymalizacją.
