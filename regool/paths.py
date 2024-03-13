@@ -97,7 +97,8 @@ def find_edge(ip):
         #Jeśli chociaż jeden route source odpowiedział, to ip_to_edge_dev musi coś zawierać
         error = "Błąd połączenia z routerami rdzeniowymi. Nie wprowadzono żadnych zmian."
         print('Error: Connection to all sources of routes failed')
-        raise regool.rgerrors.NoRouteSource('Brak dostępu do routerów rdzeniowych')
+        raise regool.rgerrors.NoRouteSource('Connection to all sources of routes failed')
+        logger.error("Connection to all sources of routes failed")
         sys.exit(1)
     return 'inside'
 # Zakladamy, że może być wiele typów urządzeń brzegowych (na razie tylko Palo). Wprowadzamy nadklasę Edge, aby

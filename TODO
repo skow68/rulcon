@@ -1,5 +1,3 @@
-
-
 1. Dodać dodawanie FQDN w funkcji create_ag. Sprawdzamy, czy adres ma format IP czy nazwy domenowej i w zależności
 od tego dodaje odpowiedni obiekt.
 2. create_ag musi tworzyć obiekty ao dla IP z nazwą zawierającą nazwę skróconą z inputu. Zasada: jeśli adres jest IP, to 
@@ -10,6 +8,15 @@ nazwa skrócona musi być. Jeśli adres jest domenowy, to nie musi.
 - jeśli adres jest url, to nazwę ignorujemy
 4. Lista portów tcp, oddzielona przecinkiem - należy rozdzielić na oddzielne wiersze na początku i procesować dalej,
 jakby były oddzielnymi regułami.
-5. Dopasowanie do istniejących reguł
-5.1 Wypracować metodę wyszukiwania
-5.2 Należy to robić przed optymalizacją na bazie dwóch tabel by_src i by_dst. Nie należy przesadzzać z tą optymalizacją.
+5. Dodanie do istniejących reguł
+5.1 Należy to robić przed optymalizacją na bazie dwóch tabel by_src i by_dst, czy po? Po.
+5.2 Reguły zawierają nazwy obiektów adresowych lub serwisowych, a nie adresy i porty. Dlatego opieramy się na ustalonej i ściśle
+ przestrzeganej konwencji nazewniczej dla tych obiektów.
+5.3 A co z obiektami grupowymi (zawierającymi kilka obiektów adresowych lub serwisowych)?
+  Bierzemy wyjściową tabelę po zoptymalizowaniu. Po kolei lecimy po regułach z fw. Jeśli w dst jest grupa to musimy ją rozpakować. Patrzymy, czy dst z opt jest
+  takie same jak w dst z fw. Jeśli nie, to lecimy dalej. Jeśli tak, to patrzymy na serwisy. Jeśli w serwisach jest grupa, to musimy rozpakować. Prównujwmy serwisy
+  z opt z serwisami z fw. Jeśli serwisy z opt zawierają się (a może są równe?) w serwisach z fw, to dodajemy src do reguły z fw. Jeśli tylko część serwisów z opt zawiera się w
+  serwisach z fw? Nie komplikujemy sprawy; lepiej stworzyć nową regułę.
+  
+
+    

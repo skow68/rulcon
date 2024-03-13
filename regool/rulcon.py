@@ -224,12 +224,14 @@ def rule_construct(basetable):
             rule_form_2.append([src_lst, ip_list, port_list, ""])
         if port_apps_list:
             rule_form_2.append([src_lst, ip_apps_list, "", port_apps_list])
+    #----presentation
     tableform2 = texttable.Texttable()
     for lst in rule_form_2:
         tableform2.add_row([lst[0], lst[1], lst[2], lst[3]])
-    """    print("THIRD OPT")
+    print("THIRD OPT")
     print(tableform2.draw())
-    return(rule_form_2) """
+    #----presentation
+    return(rule_form_2)
     """
         print('srcname', row[0])
         print('srcaddress', row[1])
