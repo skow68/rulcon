@@ -17,5 +17,16 @@ jakby były oddzielnymi regułami.
   takie same jak w dst z fw. Jeśli nie, to lecimy dalej. Jeśli tak, to patrzymy na serwisy. Jeśli w serwisach jest grupa, to musimy rozpakować. Prównujwmy serwisy
   z opt z serwisami z fw. Jeśli serwisy z opt zawierają się (a może są równe?) w serwisach z fw, to dodajemy src do reguły z fw. Jeśli tylko część serwisów z opt zawiera się w
   serwisach z fw? Nie komplikujemy sprawy; lepiej stworzyć nową regułę.
-  
+---rozpoczęty skrypt merge_rules.py w pko
+6. Program główny wycina z inputu nazwy i wysyła tabelę bez nazw do procesowania przez moduły. Tworzy przy tym lokalny DNS.
+Po obróbce dostaje następującą konstrukcję:
+(z regool.rulcon.rule_factory)
+{'fw-01': [['inside', 'outside', ['10.143.135.20'], ['172.31.1.72', '172.31.1.73', '172.31.1.74'], ['80'], ''],
+ ['inside', 'outside', ['10.143.135.20'], ['172.31.1.74'], '', ['samba']], ...]]}
+  - dla każdego ip stworzyć obiekt ao, jeśli go jeszcze nie ma
+  - jeśli liczba ip w liście przekracza 4 , utworzyć ag (jeśli jej jeszcze nie ma)
+=> czyli funkcja, która pobiera powyższą strukturę oraz dns, tworzy obiekty i zwraca analogiczną strukturę, ale z zamienionymi ip
+na ao oraz ag.
+
+7. Pomyśleć o TAG-ach. Może do umieszczenia w nazwie reguły.
 

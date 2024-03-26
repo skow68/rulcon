@@ -1,5 +1,6 @@
 import csv
 import regool.rulcon
+from rich import inspect
 """Test rulcon.rule_factory"""
 file_name = 'csv/local3.csv'
 with open(file_name, "r") as file:
@@ -23,4 +24,4 @@ print('Input:')
 print(fullinfo_table)
 readytable = regool.rulcon.rule_factory(fullinfo_table)
 print('Output:')
-print(readytable)
+inspect(readytable)

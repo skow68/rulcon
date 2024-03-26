@@ -4,8 +4,32 @@ i w przypadku błędu uruchamiany jest rise naszego custom Exception.
 Obsługa custom Exception jest umiejscowiona tylko w kodzie głównym i tutaj generowane są komunikaty dla użytkownika.
 Natomiast logi o błędach generowane są w obiektach i funkcjach.
 
+create_rules.py - input list reguł w standarcie regool, nazwa szablonu na fw; tworzy gotowe reguły na fw; brak obsługi AO/AG. 
+
+1. INPUT FORMAT:
+nazwa_src;adres_src;nazwa_dst;adres_dst;serwis np.:
+bamboo1;172.18.5.8;dst1;192.168.170.71;80
+sys1.net.frm.com;pusty;www.net.pub.com;pusty;80 - tworzymy obiekty fqdn
+sys1.net.frm.com;172.18.5.8;www.net.pub.com;pusty;80 - wtedy tworzymy obiekt w/g formatu sys1-172.18.5.8 (nie fqdn)
+---basetable
+
+2.1 INPUT regool.paths.Connections:
+[[src, dst, port], ...]
+2.2 OUTPUT regool.paths.Connections:
+[['pfe', '172.18.15.129', 'DMZE-OUTSIDE', '192.168.170.71', 'DMZE-INSIDE', 80], ...] - lista list
+Czyli input uzupełniony o urządzenia i zony
+---fullinfotable
+
+3.2 INPUT regool.rulcon.rule_factory:
+[['pfe', '172.18.15.129', 'DMZE-OUTSIDE', '192.168.170.71', 'DMZE-INSIDE', 80], ...]
+3.2 OUTPUT regool.rulcon.rule_factory:
+{'fw-01': [['inside', 'outside', ['10.143.135.20'], ['172.31.1.72', '172.31.1.73', '172.31.1.74'], ['80'], ''],
+ ['inside', 'outside', ['10.143.135.20'], ['172.31.1.74'], '', ['samba']], ...]]}
+ 
+
+
 OPIS OPTYMALIZACJI REGÓŁ
-INPUT:
+INPUT (z regool.paths.Connections):
 fw-01;bamboo1;172.18.5.8;outside;dst1;192.168.170.71;inside;80
 fw-01;bamboo2;172.18.5.9;outside;dst1;192.168.170.71;inside;80
 fw-01;bamboo2;172.18.5.9;outside;dst1;192.168.170.71;inside;443

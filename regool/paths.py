@@ -27,7 +27,7 @@ class Cisco():
     def __init__(self, host):
         coredev = {
             #"device_type": "cisco_Nxos_ssh",
-            'host': host['name'],
+            'host': route_source[host]['name'],
             "device_type": "autodetect",
             "username": user,
             "password": password,
@@ -81,7 +81,7 @@ def find_edge(ip):
     for r in route_source:
         #The function may be executed multiple times. We want to avoid setting up more than one session for a single device.
         #If the first route source in config list knows all routes, then only one connection is established. The rest of
-        #route sources are engaged if the first ons doesn't know route we are looking for.
+        #route sources are engaged if the first one doesn't know route we are looking for.
         if not isinstance(route_source[r]['name'], eval(route_source[r]['type'])):
             # print("Creating new netmiko object")
             klass = eval(route_source[r]['type'])
@@ -162,13 +162,14 @@ class Palo(Edge):
         agname = convention['addr-group-prefix'] + name
         AddressObject.refreshall(fw, add=True)
         if len(a_list) > config.limits['max_ao_in_ag']:
-            err = f'Ilość adresów do dodania przekracza ustalony próg {config.limits['max_ao_in_ag']}'
+            err = f'Ilość adresów do dodania przekracza ustalony próg {config.limits["max_ao_in_ag"]}'
             logger.error(err)
             raise regool.rgerrors.ToManyElementsError(err)
             sys.exit(1)
         ao2add = []
         for a in a_list:
             ao = fw.find(a, AddressObject)
+            #zakładamy, że nazwa ao jest zgodna z wzorem nazwa-adres_ip
             if ao is None:
                 ao_name = a
                 ao_ip = a.split('-')[1]

@@ -6,8 +6,8 @@ local2.xlsx - służy do testowania paths.show_path
 import getpass
 import warnings
 import openpyxl
-import dill as pickle
-import regool.input_data
+#import dill as pickle
+#import regool.input_data
 
 # import regool.devices
 # import regool.rgerrors
@@ -18,11 +18,11 @@ logger.info("Program started")
 warnings.filterwarnings("ignore", ".*deprecated.*")
 
 
-def save_object(obj, filename):
-    """Funkcja zachowująca w pliku dowolny obiekt."""
-    with open(filename, "wb") as outp:  # Overwrites any existing file.
-        # pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
-        pickle.dump(obj, outp)
+#def save_object(obj, filename):
+"""Funkcja zachowująca w pliku dowolny obiekt."""
+#    with open(filename, "wb") as outp:  # Overwrites any existing file.
+#        # pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
+#        pickle.dump(obj, outp)
 
 
 user = getpass.getuser()
@@ -40,7 +40,8 @@ connections = regool.paths.Connections(basetable)
 # Dzięki poniższej funkcji nie musimy za każdym testem wykonywać połączeń do urządzeń.
 # save_object(connections, 'connections.pkl')
 readytable = regool.rulcon.rule_factory(connections.rules_fullinfo)
-# print(readytable)
+print(readytable)
+exit()
 reqid = "535353"
 max_og = 4 #jeśli ilość adresów w regule jest większa, to tworzymy dla nich grupę adresów.
 max_port = 4 #podobnie jak wyżej, ale dla portów tcp
