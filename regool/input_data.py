@@ -48,9 +48,9 @@ def get_rules(file_name):
                 print("to be done")
             for row in input_rules:
                 if (
-                    not validate_url(row[0])
+                    not validate_fqdn(row[0])
                     or not validate_ip(row[1])
-                    or not validate_url(row[2])
+                    or not validate_fqdn(row[2])
                     or not validate_ip(row[3])
                     or not validate_port(row[4])
                 ):
@@ -85,24 +85,24 @@ def validate_ip(ip_address):
         ):
             return True
         else:
-            logger.error(f"The IP address {ip_address} is invalid")
+            #logger.error(f"The IP address {ip_address} is invalid")
             return False
     else:
-        logger.error(f"The IP address {ip_address} is invalid")
+        #logger.error(f"The IP address {ip_address} is invalid")
         return False
 
 
-def validate_url(url):
+def validate_fqdn(fqdn):
     """
-    Simple validation for now. Not realu url.
+    Simple validation for now. Not realu fqdn.
     """
-    # url_pattern = r'^(?:\w+://)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    url_pattern = r"[a-zA-Z0-9.-]+"
-    match = re.match(url_pattern, url)
+    # fqdn_pattern = r'^(?:\w+://)?[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    fqdn_pattern = r"[a-zA-Z0-9.-]+"
+    match = re.match(fqdn_pattern, fqdn)
     if match:
         return True
     else:
-        logger.error(f"Address {url} is invalid")
+        #logger.error(f"Address {fqdn} is invalid")
         return False
 
 

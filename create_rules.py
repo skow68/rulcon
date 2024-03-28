@@ -6,15 +6,16 @@ from panos.objects import AddressObject, AddressGroup
 import panos.errors
 from rich import inspect
 """Tworzy rulę z użyciem szablonu.
-ToDo: Dorobienie obsługi AO (ew. AG); security rule nie musi zawierać AO, mogą to być podane wprost adresy IP (pod warunkiem, że są to adresy hostów)
+input: optitable_ags = {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'], ''], ...
+czyli z podmienionymi src i dst na ao lub ag.
 """
-HOSTNAME = "127.0.0.1"
-USERNAME = "admin"
-PASSWORD = "admin"
+HOSTNAME = "172.18.2.70"
+USERNAME = "apiuser"
+PASSWORD = "kaczkooda.50"
 #Zakładamy, że szablonów może być kilka. Proefix nazwy szablonu może byćinny niż reguły
 rule_tmpl_prefix = 'rt7744'
 rule_prefix = 'r7744'
-tmpl_name = 'default'
+rule_tmpl_name = 'default'
 input_id = '109557' #id wniosku do zrealizowania
 # wzięte z dokumentacji pan-os-python; te parametry kopiujemy z szablonu
 rule_params = ['source_user', 'hip_profiles', 'category', 'log_setting', 'log_start', 'log_end', 'type', 'tag', 'negate_source',
@@ -31,23 +32,26 @@ def copy_rule_params(rule):
 #def main():
 #[[dev, src_ip, src_zone, dst_ip, dst_zone, port, app], ...] - input z optymalizatora, ale po uzupełnieniu o nazwy
 #
-in_ruls = {'HOSTNAME': [['OUTSIDE', 'INSIDE', ['src_srv-1-10.3.135.20'], ['dst_srv-1-172.31.1.73', 'dst_srv_2-172.31.1.74', 'net-3-172.31.3.0-24'], ['tcp-443'], ''],
-                         ['OUTSIDE', 'INSIDE',['10.3.'], ['172.31.1.74'], '', ['ping']]]}
+#optitable_ags = {'HOSTNAME': [['OUTSIDE', 'INSIDE', ['src_srv-1-10.3.135.20'], ['dst_srv-1-172.31.1.73', 'dst_srv_2-172.31.1.74', 'net-3-172.31.3.0-24'], ['tcp-443'], ''],
+#                         ['OUTSIDE', 'INSIDE',['10.3.'], ['172.31.1.74'], '', ['ping']]]}
+optitable_ags = {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['r77ag-109557-1'], ['tcp-4020'], ''],
+                      ['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv-3-172.31.1.74'], '', ['ping']]]}
 fw = Firewall(HOSTNAME, USERNAME, PASSWORD)
 rulebase = Rulebase()
-tmpl_rule_1 = SecurityRule(rule_tmpl_prefix + "_" + tmpl_name)
+tmpl_name = rule_tmpl_prefix + "_" + rule_tmpl_name
+tmpl_rule_1 = SecurityRule(tmpl_name)
 rulebase.add(tmpl_rule_1)
 fw.add(rulebase)
 try:
     tmpl_rule_1.refresh()
 except panos.errors.PanObjectMissing as e:
-    print(f'Template {rule_tmpl_prefix}_{tmpl_name} not found')
+    print(f'Template {rule_tmpl_prefix}_{rule_tmpl_name} not found')
     exit()
 i = 0
 new_rules = []
 #w tym skrypcie zakładamy konfigurację tylko jednego firewall'a
-for dev in in_ruls.keys():
-    for r in in_ruls[dev]:
+for dev in optitable_ags.keys():
+    for r in optitable_ags[dev]:
         new_rule_params = copy_rule_params(tmpl_rule_1) #copy params from template
         new_rule_params['fromzone'] = r[0]
         new_rule_params['tozone'] = r[1]
@@ -64,18 +68,8 @@ for dev in in_ruls.keys():
         rulebase.add(new_rule)
         try:
             new_rule.create()
+            new_rule.move('after', tmpl_rule_1)
         except panos.errors.PanXapiError as e:
             print(f'Can not create security rule. Error message: {e}')
             exit(1)
- 
-"""
-    #current_security_rules = SecurityRule.refreshall(rulebase)
-if __name__ == "__main__":
-    # This script doesn't take command line arguments.  If any are passed in,
-    # then print out the script's docstring and exit.
-    if len(sys.argv) != 1:
-        print(__doc__)
-    else:
-        # No CLI args, so run the main function.
-        main()
-"""
+fw.commit()

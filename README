@@ -20,13 +20,32 @@ sys1.net.frm.com;172.18.5.8;www.net.pub.com;pusty;80 - wtedy tworzymy obiekt w/g
 Czyli input uzupełniony o urządzenia i zony
 ---fullinfotable
 
-3.2 INPUT regool.rulcon.rule_factory:
+3.1 INPUT regool.rulcon.rule_factory:
 [['pfe', '172.18.15.129', 'DMZE-OUTSIDE', '192.168.170.71', 'DMZE-INSIDE', 80], ...]
 3.2 OUTPUT regool.rulcon.rule_factory:
 {'fw-01': [['inside', 'outside', ['10.143.135.20'], ['172.31.1.72', '172.31.1.73', '172.31.1.74'], ['80'], ''],
  ['inside', 'outside', ['10.143.135.20'], ['172.31.1.74'], '', ['samba']], ...]]}
- 
+ ---optitable
 
+4.1 INPUT create_ao.py (testowy; do przeniesienia do paths.py):
+{'fw-01': [['inside', 'outside', ['10.3.135.0/24'], ['172.31.1.72', '172.31.1.73', '172.31.1.74', '172.31.1.75', 'sys.int.fmr.com'], ['80'], ...
+4.2 OUTPUT create_ao.py:
+{'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'], ''],
+---optitable_aos
+- tworzone są na fw aos
+
+5.1 INPUT create_ag.py (testowy; do przeniesienia do paths.py):
+{'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'], ''],
+5.2 OUTPUT create_ag:
+{'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['r77ag-109557-1'], ['tcp-4020'], ''], ...
+---optitable_ags
+- tworzone są na fw ags
+
+6.1 INPUT create_rules.py (testowy; do przeniesienia do paths.py):
+{'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['r77ag-109557-1'], ['tcp-4020'], ''], ...
+6.2 OUTPUT:
+- tu jużnie ma tabel
+- tworzone są na fw reguły
 
 OPIS OPTYMALIZACJI REGÓŁ
 INPUT (z regool.paths.Connections):
