@@ -44,8 +44,12 @@ Czyli input uzupełniony o urządzenia i zony
 6.1 INPUT create_rules.py (testowy; do przeniesienia do paths.py):
 {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['r77ag-109557-1'], ['tcp-4020'], ''], ...
 6.2 OUTPUT:
-- tu jużnie ma tabel
+- tu już nie ma tabel
 - tworzone są na fw reguły
+
+PORTY SERWISOWE
+Porty są obrabiane już w input_data. Porty jako liczby lub zakresy są zamieniane w nazwy serwis obiektów oraz serie pojedynczych
+portów kompresowane są w zakresy.  Dzięki temu optymalizacja IP odbywa się już przy obrobionych portach,
 
 OPIS OPTYMALIZACJI REGÓŁ
 INPUT (z regool.paths.Connections):
