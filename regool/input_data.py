@@ -134,7 +134,6 @@ def validate_service(portstr):
                     raise err.EntryDataError(f"UDP range not correct: {p}")
                 except err.EntryDataError:
                     sys.exit(1)
-        idx += 1
         pattern = r"^\d+-\d+$"
         match = re.match(pattern, p)
         if match:
@@ -176,6 +175,7 @@ def validate_service(portstr):
     # wychwytywanie ciągów portów różniących się niewiele i które można zamienić na zakres
     min_dif = 10 #różnica między portami, aby uznać ich podobnymi
     min_nr_to_compress = 3 # min. liczba kolejnych podobnych portów, aby ich komprespwać do zakresu
+    #tcp:
     portlist.sort()
     dif = []
     for i in range(0, len(portlist) - 1):
@@ -205,18 +205,54 @@ def validate_service(portstr):
             pairs.append([start,stop])
             rang = False
             print(f'pairs: {pairs}')
+    #udp:
+    portlist_udp.sort()
+    dif = []
+    for i in range(0, len(portlist_udp) - 1):
+        tab = portlist_udp[i::1]
+        dif.append(int(tab[1]) - int(tab[0]))
+    pairs = []
+    print(dif)
+    x = 0
+    start = 0
+    stop = 0
+    rang = False
+    for i in range(0, len(dif)):
+        if dif[i] <= min_dif:
+            x += 1
+            if i == len(dif) - 1: #obsługa warunku brzegowego; gdy porty są na samym końcu
+                stop = i + 2
+                start = i - x + 1
+                pairs.append([start,stop])
+                print(pairs)
+        else:
+            x = 0
+        if x >= min_nr_to_compress - 1:
+            start = i - x + 1
+            rang = True
+        elif x < min_nr_to_compress - 1 and rang:
+            stop = i - x + 1
+            pairs.append([start,stop])
+            rang = False
+            print(f'pairs: {pairs}')
     for pair in pairs:
         print(f'portlist: {portlist[int(pair[0]):int(pair[1])]}')
+        print(f'portlist_udp: {portlist_udp[int(pair[0]):int(pair[1])]}')
         slice_of_portlist = portlist[int(pair[0]):int(pair[1])]
+        slice_of_portlist_udp = portlist_udp[int(pair[0]):int(pair[1])]
         for s in slice_of_portlist:
             output.remove('tcp-' + str(s))
+        for s in slice_of_portlist_udp:
+            output.remove('udp-' + str(s))
         rangetcp = 'tcp-' + str(portlist[pair[0]]) + '-' + str(portlist[pair[1]-1])
+        rangeudp = 'udp-' + str(portlist_udp[pair[0]]) + '-' + str(portlist_udp[pair[1]-1])
         print(rangetcp)
+        print(rangeudp)
         output.append(rangetcp)
     return output
  
 if __name__ == "__main__":
-    input = '1500, 1502, 1503, 80,443, 7000-8000, 53/udp, 2000, 2010, 2008, 8010, 8020, 8030, 9000-9010/udp'
+    input = '1500/udp, 1502/udp, 1503/udp, 80,443, 7000-8000, 53/udp, 2000, 2010, 2008, 8010, 8020, 8030, 9000-9010/udp'
     #input = '80, 7000-8000'
     validated = validate_service(input)
     print(validated)
