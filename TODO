@@ -29,4 +29,6 @@ Po obróbce dostaje następującą konstrukcję:
 na ao oraz ag.
 
 7. Pomyśleć o TAG-ach. Może do umieszczenia w nazwie reguły.
-
+8. Przeniesienie create_ao.py i create_ag.py do paths.py.
+Jeśli chcemy, aby przed tworzeniem jakichkolwiek obieków administrator potwierdził co jest do zrobienia, to create_ao.py należy rozdzielić
+przed przeniesienim do paths.py. Create_similar() trzeba uruchomić po zatwierdzeniu. 

@@ -7,7 +7,7 @@ import panos.errors
 from rich import inspect
 from regool.input_data import validate_ip, validate_fqdn
 import config
-"""Tworzy obiekty ao z optitable. Zamienia ip na obiekty w tej tabeli.
+"""Tworzy obiekty ao z optitable. Zamienia ip na obiekty i konfiguruje na fw. Wcześniej sprawdzamy, czy już są takie obiekty.
 input: optitable: {'fw-01': [['inside', 'outside', ['10.143.135.20'], ['172.31.1.72', '172.31.1.73', '172.31.1.74'], ['80'], ''], ...
 output: optitable_aos: {'fw-01': [['inside', 'outside', ['srv1-10.143.135.20'], ['srv2-172.31.1.72', 'srv3-172.31.1.73', 'srv-4-172.31.1.74'], ['80'], ''],
 """

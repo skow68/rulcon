@@ -32,7 +32,9 @@ Czyli input uzupełniony o urządzenia i zony
 4.2 OUTPUT create_ao.py:
 {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'], ''],
 ---optitable_aos
-- tworzone są na fw aos
+- tworzone są na fw address groupy
+- jeśli chcemy, aby przed tworzeniem jakichkolwiek obieków administrator potwierdził co jest do zrobienia, to create_ao.py należy rozdzielić
+przed przeniesienim do paths.py. Create_similar() trzeba uruchomić po zatwierdzeniu.
 
 5.1 INPUT create_ag.py (testowy; do przeniesienia do paths.py):
 {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'], ''],
@@ -49,7 +51,7 @@ Czyli input uzupełniony o urządzenia i zony
 
 PORTY SERWISOWE
 Porty są obrabiane już w input_data. Porty jako liczby lub zakresy są zamieniane w nazwy serwis obiektów oraz serie pojedynczych
-portów kompresowane są w zakresy.  Dzięki temu optymalizacja IP odbywa się już przy obrobionych portach,
+portów kompresowane są w zakresy.  Dzięki temu optymalizacja IP odbywa się już przy obrobionych portach.
 
 OPIS OPTYMALIZACJI REGÓŁ
 INPUT (z regool.paths.Connections):
