@@ -7,6 +7,7 @@ import panos.errors
 from rich import inspect
 from regool.input_data import validate_ip, validate_fqdn
 import config
+import regool.textui
 """ Tworzy ag jeśli liczba ao w regule jest większa niż ao_max. Podstawia nazwę nowej ag zamiast listy ao.
 input: optitable_aos: {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'],
 output: optitable_ags:
@@ -24,11 +25,12 @@ convention = config.convention
 def main():
     optitable_aos = {'fw-01': [['inside', 'outside', ['net-1-10.3.135.0-24'], ['srv_a-1-172.31.1.72', 'srv_a-2-172.31.1.73', 'srv-3-172.31.1.74', 'master_server-172.31.1.75', 'sys.int.fmr.com'], ['80'], ''], ['inside', 'outside',
 ['net-1-10.3.135.0-24'], ['srv-3-172.31.1.74'], '', ['ping']]]}
-    fw = Firewall(HOSTNAME, USERNAME, PASSWORD)
+    fw = Firewall(HOSTNAME, USERNAME, PASSWORD) #do przenieienia niżej do pętli for dev
     aos = AddressObject.refreshall(fw, add=True)
     ags = AddressGroup.refreshall(fw, add=True)
+    tabela = regool.textui.Tabela()
     ag_ao_list = []
-    ag = AddressGroup()
+    ag = None
     i=0
     for dev in optitable_aos.keys():
         for rule in optitable_aos[dev]:
@@ -51,9 +53,12 @@ def main():
                         err = f'Element {agname} istnieje chociaż nie powinien'
                         print(err)
                         exit()
-    if ag_ao_list:
+                    tabela.add_ag(dev, agname, ag_ao_list)
+    tabela.print_ag()
+    __ag_for_create = ag
+    if __ag_for_create: #__ag_for_create - to ma być parametr obiektu, tak żeby był wszędzie dostępny i żeby mozna było gdziekolwiek wykonać create_similar()
         try:
-            ag.create_similar()
+            __ag_for_create.create_similar()
         except panos.errors.PanDeviceError as e:
             err = f'Can not create address group objects: {e}'
             print(err)
