@@ -17,7 +17,19 @@ jakby były oddzielnymi regułami.
   takie same jak w dst z fw. Jeśli nie, to lecimy dalej. Jeśli tak, to patrzymy na serwisy. Jeśli w serwisach jest grupa, to musimy rozpakować. Prównujwmy serwisy
   z opt z serwisami z fw. Jeśli serwisy z opt zawierają się (a może są równe?) w serwisach z fw, to dodajemy src do reguły z fw. Jeśli tylko część serwisów z opt zawiera się w
   serwisach z fw? Nie komplikujemy sprawy; lepiej stworzyć nową regułę.
----rozpoczęty skrypt merge_rules.py w pko
+5.4 Sprawdzane są dst ip, dst srv i dst app. Jeśli dst z wniosku zawierają się w dst z fw, to do tej reguły dodawane są src ip z wniosku.
+    Co z dostępami typu bastionowego tzn. z jednego src do wielu dst. Jak odróżnić dostęp bastionowy od serwisowego.
+    Kolejnie pojawiające się reguły:
+    r1 src1 -> dst1(p1,p2)  == nowa reguła
+    r1 src1 -> dst2(p1,p2)  == src1 -> (dst1, dst2)(p1,p2)
+    r2 src2 -> dst1(p1,p2)  == nowa reguła
+    r1 src2 -> dst2(p1,p2)  == src2 -> (dst1, dst2)(p1,p2) == (src1, src2) -> (dst1, dst2)(p1,p2)
+    r3 src3 -> dst1(p1,p2)  == nowa reguła
+    r4 src1 -> dst3(p1,p2)  == nowa reguła
+    Z 6 wniosków otrzymujemy w rezultacie 4 reguły. Zakładamy, że porty są takie same. Jeśli nie, to nie uwzględniamy w tym algorytmie. w sensie, że tworzmy
+    nową regułę.
+
+---rozpoczęty skrypt merge_rules.py
 6. Program główny wycina z inputu nazwy i wysyła tabelę bez nazw do procesowania przez moduły. Tworzy przy tym lokalny DNS.
 Po obróbce dostaje następującą konstrukcję:
 (z regool.rulcon.rule_factory)
@@ -32,3 +44,5 @@ na ao oraz ag.
 8. Przeniesienie create_ao.py i create_ag.py do paths.py.
 Jeśli chcemy, aby przed tworzeniem jakichkolwiek obieków administrator potwierdził co jest do zrobienia, to create_ao.py należy rozdzielić
 przed przeniesienim do paths.py. Create_similar() trzeba uruchomić po zatwierdzeniu. 
+
+

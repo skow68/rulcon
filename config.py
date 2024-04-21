@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+kindom = 'r77'
 route_source = {
     "rt1": {
         "type": "Cisco",
@@ -26,8 +26,9 @@ route_to_outside = {
     '192.168.245.139': 'fw2'
 }
 convention =  {
-    'addr-group-prefix': 'r77ag-',
-    'sec-rule-prefix': 'r77rule-'
+ 
+    'addr-group-prefix': kindom + 'ag',
+    'sec-rule-prefix': kindom + 'sr'
 }
 limits = {
     'max_ao_in_ag': 50, #limit for address objects in address group
